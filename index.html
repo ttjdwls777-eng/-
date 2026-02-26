@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1, user-scalable=no" />
-  <title>XGP 미니게임 (SHOP 업그레이드 + 스킨 + 폭탄 8종)</title>
+  <title>XGP 미니게임 (SHOP 확장 / 경고후 낙하 / 퀄리티업)</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +22,7 @@
 
       --uiShadow: 0 12px 40px rgba(0,0,0,.35);
 
-      /* Jet VFX variables (tier-based) */
+      /* Jet VFX vars (tier-based) */
       --jetAuraA: 0.18;
       --jetAuraB: 0.08;
       --jetAuraHue: 190deg;
@@ -30,6 +30,10 @@
       --jetRingHue: 190deg;
       --trailA: 0.55;
       --trailHue: 190deg;
+
+      /* Warning colors */
+      --warnLine: rgba(255,209,102,.9);
+      --warnGlow: rgba(255,209,102,.35);
     }
 
     *{ box-sizing:border-box; }
@@ -79,7 +83,7 @@
       100%{ transform: translate(0,0) rotate(0deg); }
     }
 
-    .wrap{ width:100%; max-width:560px; }
+    .wrap{ width:100%; max-width:600px; }
 
     .title{
       display:flex; align-items:center; justify-content:space-between;
@@ -110,7 +114,7 @@
     }
     .pill{
       flex:1;
-      min-width:150px;
+      min-width:170px;
       background: var(--panel);
       border:2px solid rgba(255,180,90,.85);
       border-radius:12px;
@@ -203,7 +207,7 @@
       position:absolute;
       width:56px;
       height:56px;
-      z-index:5;
+      z-index:6;
       will-change: transform;
       filter: drop-shadow(0 10px 14px rgba(0,0,0,.35));
       transform: translate3d(0,0,0) rotate(0deg);
@@ -270,16 +274,15 @@
     }
 
     /* ===== OBJECTS ===== */
-    .hazard, .star, .jetParticle, .tierRing{
+    .hazard, .star, .jetParticle, .tierRing, .warnLine, .warnCircle{
       position:absolute;
       pointer-events:none;
-      z-index:3;
-      will-change: transform;
-      opacity:1;
+      will-change: transform, opacity;
       transform: translate3d(var(--x, 0px), var(--y, 0px), 0);
     }
 
     .hazard{
+      z-index:4;
       border-radius:50%;
       background-size:contain;
       background-repeat:no-repeat;
@@ -291,15 +294,14 @@
       0%,100%{ transform: translate3d(var(--x,0px), var(--y,0px), 0) rotate(-2deg) scale(1); }
       50%     { transform: translate3d(var(--x,0px), var(--y,0px), 0) rotate( 2deg) scale(1.03); }
     }
-    .hazard.spin{
-      animation: hazardSpin .45s linear infinite;
-    }
+    .hazard.spin{ animation: hazardSpin .45s linear infinite; }
     @keyframes hazardSpin{
       from{ transform: translate3d(var(--x,0px), var(--y,0px), 0) rotate(0deg); }
       to  { transform: translate3d(var(--x,0px), var(--y,0px), 0) rotate(360deg); }
     }
 
     .star{
+      z-index:4;
       width:28px; height:28px;
       background-size:contain;
       background-repeat:no-repeat;
@@ -313,6 +315,7 @@
     }
 
     .jetParticle{
+      z-index:5;
       width:6px; height:6px;
       border-radius:999px;
       background:
@@ -320,9 +323,7 @@
         radial-gradient(circle at 60% 60%, rgba(125,249,255,.85), rgba(0,0,0,0) 62%);
       filter: hue-rotate(var(--trailHue)) drop-shadow(0 0 10px rgba(125,249,255,.22));
       opacity:.95;
-      z-index:4;
       animation: jp 520ms ease-out forwards;
-      transform: translate3d(var(--x,0px), var(--y,0px), 0);
     }
     @keyframes jp{
       from{ opacity:.95; transform: translate3d(var(--x,0px), var(--y,0px), 0) scale(1); }
@@ -330,6 +331,7 @@
     }
 
     .tierRing{
+      z-index:12;
       width:160px; height:160px;
       transform: translate(-50%,-50%);
       border-radius:999px;
@@ -342,14 +344,54 @@
       filter: hue-rotate(var(--jetRingHue)) drop-shadow(0 0 22px rgba(125,249,255,.28));
       mix-blend-mode: screen;
       opacity:0;
-      pointer-events:none;
-      z-index:12;
       animation: ring 520ms ease-out forwards;
     }
     @keyframes ring{
       0%{ opacity:0; transform: translate(-50%,-50%) scale(.45); }
       20%{ opacity:1; }
       100%{ opacity:0; transform: translate(-50%,-50%) scale(1.55); }
+    }
+
+    /* ===== Warning telegraph (laser line + impact circle) ===== */
+    .warnLine{
+      z-index:2;
+      left:0; top:0;
+      width:6px;
+      height:100%;
+      transform: translate3d(var(--x,0px), 0, 0);
+      background:
+        linear-gradient(to bottom,
+          rgba(0,0,0,0),
+          var(--warnLine),
+          rgba(0,0,0,0));
+      opacity:0;
+      filter: drop-shadow(0 0 10px var(--warnGlow)) drop-shadow(0 0 18px rgba(255,120,60,.15));
+      animation: warnPulse 520ms ease-in-out infinite;
+      border-radius:999px;
+    }
+    @keyframes warnPulse{
+      0%,100%{ opacity:0.25; }
+      50%{ opacity:0.95; }
+    }
+
+    .warnCircle{
+      z-index:2;
+      width:120px; height:120px;
+      transform: translate(-50%,-50%);
+      border-radius:999px;
+      background:
+        radial-gradient(circle at 50% 50%,
+          rgba(255,209,102,.0) 0%,
+          rgba(255,209,102,.0) 50%,
+          rgba(255,209,102,.45) 58%,
+          rgba(255,209,102,0) 72%);
+      filter: drop-shadow(0 0 16px var(--warnGlow));
+      opacity:0.0;
+      animation: circlePulse 520ms ease-in-out infinite;
+    }
+    @keyframes circlePulse{
+      0%,100%{ opacity:0.25; transform: translate(-50%,-50%) scale(.92); }
+      50%{ opacity:0.90; transform: translate(-50%,-50%) scale(1.05); }
     }
 
     .explosion{
@@ -465,13 +507,13 @@
     .startUI{
       position:absolute;
       left:0; right:0; bottom:0;
-      padding:16px 14px calc(14px + env(safe-area-inset-bottom));
+      padding:14px 12px calc(14px + env(safe-area-inset-bottom));
       display:flex;
       flex-direction:column;
       gap:10px;
       align-items:center;
       justify-content:center;
-      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.72));
+      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.74));
     }
 
     .pressStart{
@@ -501,10 +543,10 @@
     }
 
     .shop{
-      width: calc(100% - 12px);
-      max-width: 520px;
+      width: calc(100% - 10px);
+      max-width: 560px;
       border:2px solid rgba(125,249,255,.55);
-      background: rgba(12,8,24,.55);
+      background: rgba(12,8,24,.56);
       border-radius: 14px;
       padding: 12px;
       box-shadow: var(--uiShadow);
@@ -516,13 +558,13 @@
       gap:10px;
       flex-wrap:wrap;
       justify-content:center;
-      align-items:center;
+      align-items:stretch;
       margin-top: 8px;
     }
 
     .shopStat{
       flex:1;
-      min-width: 210px;
+      min-width: 220px;
       border:2px solid rgba(255,180,90,.65);
       border-radius: 12px;
       padding: 10px;
@@ -530,13 +572,89 @@
       background: rgba(20,12,40,.45);
       color: var(--muted);
       box-shadow: inset 0 0 22px rgba(255,160,60,.08);
+      line-height: 1.55;
     }
     .shopStat b{ color: var(--txt); }
 
-    .shopBtns button{
-      min-width: 120px;
-      flex: 1;
+    .shopPanel{
+      width: 100%;
+      border:2px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.22);
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: inset 0 0 18px rgba(125,249,255,.05);
     }
+
+    .shopTitle{
+      font-size: 10px;
+      color: #eaffff;
+      opacity: .95;
+      margin-bottom: 8px;
+      text-shadow: 2px 2px 0 rgba(0,0,0,.35);
+      text-align: center;
+    }
+
+    .upgList{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:8px;
+    }
+
+    .upgItem{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      border:2px solid rgba(255,180,90,.45);
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(20,12,40,.35);
+      box-shadow: inset 0 0 18px rgba(255,160,60,.06);
+      font-size: 9px;
+      color: var(--muted);
+    }
+
+    .upgItem .left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width: 0;
+    }
+    .upgItem .name{
+      color: var(--txt);
+      font-size: 10px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .upgItem .desc{
+      opacity:.95;
+      line-height:1.45;
+    }
+    .upgItem .right{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .badge{
+      border:2px solid rgba(125,249,255,.55);
+      border-radius: 10px;
+      padding: 6px 8px;
+      color: #eaffff;
+      background: rgba(10,8,20,.35);
+      font-size: 9px;
+      min-width: 68px;
+      text-align:center;
+      box-shadow: inset 0 0 14px rgba(125,249,255,.08);
+    }
+    .btnSmall{
+      flex:0 0 auto;
+      min-width: 86px;
+      padding: 10px 10px;
+      font-size: 9px;
+    }
+
+    .shopBtns button{ min-width: 120px; }
 
     .shopSmall{
       font-size: 8px;
@@ -569,7 +687,7 @@
       pointer-events:none;
       display:none;
       text-align:center;
-      z-index:6;
+      z-index:7;
       filter: drop-shadow(0 6px 10px rgba(0,0,0,.35));
     }
     .touchHint .hintHand{ font-size:18px; animation: hintBob .9s ease-in-out infinite; }
@@ -601,11 +719,13 @@
       }
       .game{
         aspect-ratio:auto;
-        height:calc(100vh - 150px);
+        height:calc(100vh - 165px);
         max-height:none;
       }
       .help{ display:none; }
       .shopStat{ min-width: 170px; }
+      .pill{ min-width: 155px; }
+      .btnSmall{ min-width: 80px; }
     }
   </style>
 </head>
@@ -641,7 +761,7 @@
         <div class="touchHint" id="touchHint" aria-hidden="true">
           <div class="hintHand">👇</div>
           <div class="hintArrow">⬇️</div>
-          <div class="hintText">여기 터치</div>
+          <div class="hintText">드래그!</div>
         </div>
 
         <!-- 시작 화면 + SHOP -->
@@ -655,34 +775,113 @@
 
             <div class="shop" role="group" aria-label="shop">
               <div class="startHint">
-                시작 전에 STAR로 업그레이드! (100 STAR = 1 업그레이드, 최대 100)<br/>
-                레벨은 게임 중 변하지 않고, 점수 배수로만 적용돼.
+                레벨 업그레이드(기존 방식 유지): <b>100 STAR = 1 레벨</b> (최대 100)<br/>
+                추가 업그레이드: 점수배수 / 이동속도 / 히트박스 축소 / 별 출현률 / 폭탄 속도 감소<br/>
+                폭탄은 <b>경고 라인</b> 후에 떨어지는 패턴이 섞여서 퀄리티가 확 올라가.
               </div>
 
               <div class="shopRow">
-                <div class="shopStat">보유 STAR: <b id="shopBank">0</b></div>
-                <div class="shopStat">구매 레벨: <b id="shopLevel">0</b>/100</div>
+                <div class="shopStat">
+                  보유 STAR: <b id="shopBank">0</b><br/>
+                  구매 레벨: <b id="shopLevel">0</b>/100
+                </div>
+                <div class="shopStat">
+                  점수배수: <b id="shopMul">x1.00</b><br/>
+                  이동속도: <b id="shopMove">x1.00</b><br/>
+                  히트박스: <b id="shopHit">100%</b><br/>
+                  별 출현률: <b id="shopStarRate">x1.00</b><br/>
+                  폭탄 속도: <b id="shopHazSlow">100%</b>
+                </div>
               </div>
 
-              <div class="shopRow shopBtns" style="margin-top:10px;">
-                <button id="buy1" class="primary">+1 (100)</button>
-                <button id="buy10" class="primary">+10 (1000)</button>
-                <button id="buyMax" class="primary">MAX</button>
-              </div>
+              <div class="shopRow">
+                <div class="shopPanel">
+                  <div class="shopTitle">UPGRADE SHOP (각 +1 = 100 STAR)</div>
 
-              <div class="shopRow shopBtns">
-                <button id="resetShop" class="danger">STAR/레벨 초기화</button>
-                <button id="startBtn" class="primary">시작하기</button>
-              </div>
+                  <div class="upgList">
+                    <div class="upgItem">
+                      <div class="left">
+                        <div class="name">레벨 업그레이드</div>
+                        <div class="desc">기본 배수(1.05^레벨) 상승 + 10단위마다 스킨 진화</div>
+                      </div>
+                      <div class="right">
+                        <div class="badge"><span id="lvNow">0</span>/100</div>
+                        <button class="btnSmall primary" id="buyLv">+1</button>
+                      </div>
+                    </div>
 
-              <div class="shopSmall">
-                스킨 변화: 레벨 0/10/20/30/40...마다 제트 스킨이 “이미지 자체로” 바뀜 + 오라/파티클 강화<br/>
-                폭탄: 8종(각기 다른 움직임/크기/히트박스)
+                    <div class="upgItem">
+                      <div class="left">
+                        <div class="name">점수 배수</div>
+                        <div class="desc">별 획득 점수 추가 배수 (업그레이드 1당 +3%)</div>
+                      </div>
+                      <div class="right">
+                        <div class="badge"><span id="mulNow">0</span>/50</div>
+                        <button class="btnSmall primary" id="buyMul">+1</button>
+                      </div>
+                    </div>
+
+                    <div class="upgItem">
+                      <div class="left">
+                        <div class="name">이동 속도</div>
+                        <div class="desc">좌우 이동 속도 증가 (업그레이드 1당 +2%)</div>
+                      </div>
+                      <div class="right">
+                        <div class="badge"><span id="moveNow">0</span>/50</div>
+                        <button class="btnSmall primary" id="buyMove">+1</button>
+                      </div>
+                    </div>
+
+                    <div class="upgItem">
+                      <div class="left">
+                        <div class="name">히트박스 축소</div>
+                        <div class="desc">충돌 판정 축소 (업그레이드 1당 -0.6%)</div>
+                      </div>
+                      <div class="right">
+                        <div class="badge"><span id="hitNow">0</span>/60</div>
+                        <button class="btnSmall primary" id="buyHit">+1</button>
+                      </div>
+                    </div>
+
+                    <div class="upgItem">
+                      <div class="left">
+                        <div class="name">별 출현률</div>
+                        <div class="desc">별 더 자주 등장 (업그레이드 1당 +2.5%)</div>
+                      </div>
+                      <div class="right">
+                        <div class="badge"><span id="starNow">0</span>/50</div>
+                        <button class="btnSmall primary" id="buyStarRate">+1</button>
+                      </div>
+                    </div>
+
+                    <div class="upgItem">
+                      <div class="left">
+                        <div class="name">폭탄 속도 감소</div>
+                        <div class="desc">폭탄 낙하 속도 감소 (업그레이드 1당 -1.3%)</div>
+                      </div>
+                      <div class="right">
+                        <div class="badge"><span id="slowNow">0</span>/50</div>
+                        <button class="btnSmall primary" id="buyHazSlow">+1</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="shopRow shopBtns" style="margin-top:10px;">
+                    <button id="buy10pack" class="primary">+10 패키지</button>
+                    <button id="buyMax" class="primary">레벨 MAX</button>
+                    <button id="resetShop" class="danger">모두 초기화</button>
+                    <button id="startBtn" class="primary">시작하기</button>
+                  </div>
+
+                  <div class="shopSmall">
+                    팁: HARD에서 경고 후 낙하(텔레그래프) 패턴이 더 자주 나옴. 스플리터/시커 등 특수 폭탄도 강화.
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </div><!-- overlay -->
+      </div><!-- game -->
 
       <div class="btnRow">
         <button id="restartBtn">리셋(런)</button>
@@ -691,12 +890,13 @@
 
       <div class="help">
         조작: PC는 A/D(좌우) 또는 방향키, 모바일은 제트기를 드래그<br/>
-        목표: 폭탄 피하고 별을 먹어 점수 획득. 맞으면 게임 오버!
+        목표: 폭탄 피하고 별을 먹어 점수 획득. (업그레이드는 시작 전에!)
       </div>
     </div>
   </div>
 
   <script>
+    // ===== DOM =====
     const game = document.getElementById("game");
     const player = document.getElementById("player");
     const jetSprite = document.getElementById("jetSprite");
@@ -716,19 +916,35 @@
 
     const shopBankEl = document.getElementById("shopBank");
     const shopLevelEl = document.getElementById("shopLevel");
-    const buy1Btn = document.getElementById("buy1");
-    const buy10Btn = document.getElementById("buy10");
+    const shopMulEl = document.getElementById("shopMul");
+    const shopMoveEl = document.getElementById("shopMove");
+    const shopHitEl = document.getElementById("shopHit");
+    const shopStarRateEl = document.getElementById("shopStarRate");
+    const shopHazSlowEl = document.getElementById("shopHazSlow");
+
+    const lvNowEl = document.getElementById("lvNow");
+    const mulNowEl = document.getElementById("mulNow");
+    const moveNowEl = document.getElementById("moveNow");
+    const hitNowEl = document.getElementById("hitNow");
+    const starNowEl = document.getElementById("starNow");
+    const slowNowEl = document.getElementById("slowNow");
+
+    const buyLvBtn = document.getElementById("buyLv");
+    const buyMulBtn = document.getElementById("buyMul");
+    const buyMoveBtn = document.getElementById("buyMove");
+    const buyHitBtn = document.getElementById("buyHit");
+    const buyStarRateBtn = document.getElementById("buyStarRate");
+    const buyHazSlowBtn = document.getElementById("buyHazSlow");
+
+    const buy10packBtn = document.getElementById("buy10pack");
     const buyMaxBtn = document.getElementById("buyMax");
     const resetShopBtn = document.getElementById("resetShop");
 
-    // ✅ 시작 화면 이미지
+    // ===== Assets =====
     const START_SCREEN_URL =
       "https://github.com/ttjdwls777-eng/-/blob/main/%EA%B2%8C%EC%9E%84%EC%8B%9C%EC%9E%91%20%ED%99%94%EB%A9%B4.png?raw=1";
 
-    // ===== Jet skins (레벨 10단위 “이미지 자체 변경”) =====
-    // 0/10/20/30/40... -> tier index (0~9 가능하지만 여기선 0~5까지만 진짜 강하게)
     function jetSkinSvg({ body="#7df9ff", wing="#ffd166", core="#ffffff", flame="#ff6a3d", accent="#7b2cff" }){
-      // 간단하지만 “바뀐 게 확” 보이도록 색 대비 강한 픽셀/레트로 느낌 SVG
       return "data:image/svg+xml," + encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
           <defs>
@@ -742,21 +958,15 @@
             </radialGradient>
           </defs>
 
-          <!-- wing -->
           <path d="M16 54 L42 42 L42 56 L16 64 Z" fill="${wing}" opacity="0.95"/>
           <path d="M80 54 L54 42 L54 56 L80 64 Z" fill="${wing}" opacity="0.95"/>
 
-          <!-- body -->
           <path d="M48 10 L60 36 L60 70 L48 82 L36 70 L36 36 Z" fill="url(#g)" stroke="${core}" stroke-opacity="0.85" stroke-width="3"/>
           <circle cx="48" cy="44" r="10" fill="url(#c)" stroke="${core}" stroke-opacity="0.55" stroke-width="2"/>
 
-          <!-- cockpit -->
           <path d="M48 18 L54 34 L48 38 L42 34 Z" fill="${core}" opacity="0.55"/>
-
-          <!-- flame hint -->
           <path d="M48 86 C54 82 56 78 48 72 C40 78 42 82 48 86 Z" fill="${flame}" opacity="0.92"/>
 
-          <!-- pixel spark -->
           <rect x="26" y="30" width="3" height="3" fill="${core}" opacity="0.65"/>
           <rect x="67" y="31" width="3" height="3" fill="${core}" opacity="0.55"/>
           <rect x="30" y="66" width="3" height="3" fill="${core}" opacity="0.45"/>
@@ -764,58 +974,33 @@
       `);
     }
 
-    // tier 0..5 skins
     const JET_SKINS = [
-      jetSkinSvg({ body:"#7df9ff", wing:"#ffd166", core:"#ffffff", flame:"#ff6a3d", accent:"#2a55ff" }), // 0
-      jetSkinSvg({ body:"#67ff6d", wing:"#eaffff", core:"#ffffff", flame:"#ffd166", accent:"#00c2a8" }), // 10
-      jetSkinSvg({ body:"#ffd166", wing:"#7df9ff", core:"#ffffff", flame:"#ff6a3d", accent:"#ff2cc8" }), // 20
-      jetSkinSvg({ body:"#ff4dff", wing:"#ffd166", core:"#ffffff", flame:"#7df9ff", accent:"#6b00ff" }), // 30
-      jetSkinSvg({ body:"#ff6a3d", wing:"#fff4b3", core:"#ffffff", flame:"#ffd166", accent:"#ff2a2a" }), // 40
-      jetSkinSvg({ body:"#ffffff", wing:"#7df9ff", core:"#ffd166", flame:"#ff4dff", accent:"#00ffcc" }), // 50+
-    ];
-
-    // ===== 폭탄 8종 =====
-    const HAZARD_TYPES = [
-      // 0 core
-      { key:"core", cls:"", w:36, h:36, hit:0.62, spin:false,
-        svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='g' cx='30%25' cy='25%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='.65'/%3E%3Cstop offset='40%25' stop-color='%235b2bbf' stop-opacity='1'/%3E%3Cstop offset='100%25' stop-color='%23210a4f' stop-opacity='1'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='48' cy='48' r='30' fill='url(%23g)' stroke='%23ffffff' stroke-opacity='.9' stroke-width='4'/%3E%3Cpath d='M28 44c10-12 18 12 28 0s18 12 28 0' fill='none' stroke='%237df9ff' stroke-opacity='.65' stroke-width='3'/%3E%3Cpath d='M30 60c12-10 14 10 26 0s16 10 26 0' fill='none' stroke='%23ffd166' stroke-opacity='.45' stroke-width='2.5'/%3E%3C/svg%3E"
-      },
-      // 1 mine
-      { key:"mine", cls:"", w:40, h:40, hit:0.58, spin:false,
-        svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110' viewBox='0 0 110 110'%3E%3Cdefs%3E%3CradialGradient id='m' cx='35%25' cy='30%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='.75'/%3E%3Cstop offset='40%25' stop-color='%232aa7ff'/%3E%3Cstop offset='100%25' stop-color='%230b2b66'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M55 6l7 18 16-10-6 19 19 2-14 12 16 10-19 1 6 19-16-10-7 18-7-18-16 10 6-19-19-1 16-10-14-12 19-2-6-19 16 10z' fill='%23d7f5ff' opacity='.55'/%3E%3Ccircle cx='55' cy='55' r='28' fill='url(%23m)' stroke='%23ffffff' stroke-opacity='.9' stroke-width='4'/%3E%3Cpath d='M36 60c9-9 15 9 24 0s15 9 24 0' fill='none' stroke='%23ffd166' stroke-opacity='.45' stroke-width='3'/%3E%3C/svg%3E"
-      },
-      // 2 comet (spin)
-      { key:"comet", cls:"spin", w:54, h:22, hit:0.72, spin:true,
-        svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='80' viewBox='0 0 180 80'%3E%3Cdefs%3E%3ClinearGradient id='c' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='0'/%3E%3Cstop offset='.35' stop-color='%23ffd166' stop-opacity='.35'/%3E%3Cstop offset='1' stop-color='%23ff6a3d'/%3E%3C/linearGradient%3E%3CradialGradient id='h' cx='55%25' cy='40%25' r='70%25'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='.55' stop-color='%23ff6a3d'/%3E%3Cstop offset='1' stop-color='%236a0f1f'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M12 40c40-24 74-26 112 0-38 26-72 24-112 0z' fill='url(%23c)'/%3E%3Ccircle cx='136' cy='40' r='22' fill='url(%23h)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='4'/%3E%3C/svg%3E"
-      },
-      // 3 bigcore
-      { key:"bigcore", cls:"", w:58, h:58, hit:0.62, spin:false,
-        svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cdefs%3E%3CradialGradient id='b' cx='30%25' cy='25%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='.7'/%3E%3Cstop offset='40%25' stop-color='%23ff4dff'/%3E%3Cstop offset='100%25' stop-color='%23210a4f'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='70' cy='74' r='44' fill='url(%23b)' stroke='%23ffffff' stroke-opacity='.9' stroke-width='5'/%3E%3Cpath d='M36 66c12-14 22 14 34 0s22 14 34 0' fill='none' stroke='%237df9ff' stroke-opacity='.65' stroke-width='4'/%3E%3C/svg%3E"
-      },
-      // 4 plasma (small fast)
-      { key:"plasma", cls:"spin", w:26, h:26, hit:0.68, spin:true,
-        svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='p' cx='40%25' cy='35%25' r='70%25'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='.55' stop-color='%237df9ff'/%3E%3Cstop offset='1' stop-color='%23073a5a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='48' cy='48' r='22' fill='url(%23p)' stroke='%23ffffff' stroke-opacity='.75' stroke-width='4'/%3E%3Cpath d='M30 50c6-8 12 8 18 0s12 8 18 0' fill='none' stroke='%23ffd166' stroke-opacity='.35' stroke-width='2.5'/%3E%3C/svg%3E"
-      },
-      // 5 twister (sine weave)
-      { key:"twister", cls:"", w:34, h:34, hit:0.62, spin:false,
-        svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110' viewBox='0 0 110 110'%3E%3Cdefs%3E%3CradialGradient id='t' cx='35%25' cy='30%25' r='75%25'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='.7'/%3E%3Cstop offset='.55' stop-color='%23ffd166'/%3E%3Cstop offset='1' stop-color='%235b2bbf'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='55' cy='55' r='26' fill='url(%23t)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='4'/%3E%3Cpath d='M30 55c8-10 14 10 22 0s14 10 22 0' fill='none' stroke='%237df9ff' stroke-opacity='.55' stroke-width='3'/%3E%3C/svg%3E"
-      },
-      // 6 splitter (mid split)
-      { key:"splitter", cls:"", w:42, h:42, hit:0.60, spin:false,
-        svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cdefs%3E%3CradialGradient id='s' cx='35%25' cy='30%25' r='75%25'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='.75'/%3E%3Cstop offset='.55' stop-color='%23ff4dff'/%3E%3Cstop offset='1' stop-color='%230b2b66'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='60' cy='60' r='30' fill='url(%23s)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='4'/%3E%3Cpath d='M60 30v60' stroke='%23ffd166' stroke-opacity='.75' stroke-width='5'/%3E%3Cpath d='M38 60h44' stroke='%237df9ff' stroke-opacity='.55' stroke-width='4'/%3E%3C/svg%3E"
-      },
-      // 7 seeker (slight homing)
-      { key:"seeker", cls:"spin", w:32, h:32, hit:0.64, spin:true,
-        svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='q' cx='35%25' cy='30%25' r='75%25'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='.75'/%3E%3Cstop offset='.55' stop-color='%2367ff6d'/%3E%3Cstop offset='1' stop-color='%23073a5a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='48' cy='48' r='24' fill='url(%23q)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='4'/%3E%3Cpath d='M48 20l6 10-6 4-6-4z' fill='%23ffffff' opacity='.55'/%3E%3Cpath d='M30 58c10-8 12 8 18 0s12 8 18 0' fill='none' stroke='%23ffd166' stroke-opacity='.45' stroke-width='3'/%3E%3C/svg%3E"
-      }
+      jetSkinSvg({ body:"#7df9ff", wing:"#ffd166", core:"#ffffff", flame:"#ff6a3d", accent:"#2a55ff" }),
+      jetSkinSvg({ body:"#67ff6d", wing:"#eaffff", core:"#ffffff", flame:"#ffd166", accent:"#00c2a8" }),
+      jetSkinSvg({ body:"#ffd166", wing:"#7df9ff", core:"#ffffff", flame:"#ff6a3d", accent:"#ff2cc8" }),
+      jetSkinSvg({ body:"#ff4dff", wing:"#ffd166", core:"#ffffff", flame:"#7df9ff", accent:"#6b00ff" }),
+      jetSkinSvg({ body:"#ff6a3d", wing:"#fff4b3", core:"#ffffff", flame:"#ffd166", accent:"#ff2a2a" }),
+      jetSkinSvg({ body:"#ffffff", wing:"#7df9ff", core:"#ffd166", flame:"#ff4dff", accent:"#00ffcc" }),
     ];
 
     const STAR_SVG =
       "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='s' cx='50%25' cy='35%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23fff4b3'/%3E%3Cstop offset='55%25' stop-color='%23ffd166'/%3E%3Cstop offset='100%25' stop-color='%23ff9a3c'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M48 6l11 24 26 3-19 18 5 26-23-13-23 13 5-26L11 33l26-3z' fill='url(%23s)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='3'/%3E%3C/svg%3E";
 
-    // ===== HITBOX =====
-    const PLAYER_HIT_SCALE = 0.82;
+    // 8 hazard types
+    const HAZARD_TYPES = [
+      { key:"core", cls:"", w:36, h:36, hit:0.62, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='g' cx='30%25' cy='25%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='.65'/%3E%3Cstop offset='40%25' stop-color='%235b2bbf' stop-opacity='1'/%3E%3Cstop offset='100%25' stop-color='%23210a4f' stop-opacity='1'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='48' cy='48' r='30' fill='url(%23g)' stroke='%23ffffff' stroke-opacity='.9' stroke-width='4'/%3E%3Cpath d='M28 44c10-12 18 12 28 0s18 12 28 0' fill='none' stroke='%237df9ff' stroke-opacity='.65' stroke-width='3'/%3E%3Cpath d='M30 60c12-10 14 10 26 0s16 10 26 0' fill='none' stroke='%23ffd166' stroke-opacity='.45' stroke-width='2.5'/%3E%3C/svg%3E" },
+      { key:"mine", cls:"", w:40, h:40, hit:0.58, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110' viewBox='0 0 110 110'%3E%3Cdefs%3E%3CradialGradient id='m' cx='35%25' cy='30%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='.75'/%3E%3Cstop offset='40%25' stop-color='%232aa7ff'/%3E%3Cstop offset='100%25' stop-color='%230b2b66'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M55 6l7 18 16-10-6 19 19 2-14 12 16 10-19 1 6 19-16-10-7 18-7-18-16 10 6-19-19-1 16-10-14-12 19-2-6-19 16 10z' fill='%23d7f5ff' opacity='.55'/%3E%3Ccircle cx='55' cy='55' r='28' fill='url(%23m)' stroke='%23ffffff' stroke-opacity='.9' stroke-width='4'/%3E%3Cpath d='M36 60c9-9 15 9 24 0s15 9 24 0' fill='none' stroke='%23ffd166' stroke-opacity='.45' stroke-width='3'/%3E%3C/svg%3E" },
+      { key:"comet", cls:"spin", w:54, h:22, hit:0.72, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='80' viewBox='0 0 180 80'%3E%3Cdefs%3E%3ClinearGradient id='c' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='0'/%3E%3Cstop offset='.35' stop-color='%23ffd166' stop-opacity='.35'/%3E%3Cstop offset='1' stop-color='%23ff6a3d'/%3E%3C/linearGradient%3E%3CradialGradient id='h' cx='55%25' cy='40%25' r='70%25'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='.55' stop-color='%23ff6a3d'/%3E%3Cstop offset='1' stop-color='%236a0f1f'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M12 40c40-24 74-26 112 0-38 26-72 24-112 0z' fill='url(%23c)'/%3E%3Ccircle cx='136' cy='40' r='22' fill='url(%23h)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='4'/%3E%3C/svg%3E" },
+      { key:"bigcore", cls:"", w:58, h:58, hit:0.62, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cdefs%3E%3CradialGradient id='b' cx='30%25' cy='25%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='.7'/%3E%3Cstop offset='40%25' stop-color='%23ff4dff'/%3E%3Cstop offset='100%25' stop-color='%23210a4f'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='70' cy='74' r='44' fill='url(%23b)' stroke='%23ffffff' stroke-opacity='.9' stroke-width='5'/%3E%3Cpath d='M36 66c12-14 22 14 34 0s22 14 34 0' fill='none' stroke='%237df9ff' stroke-opacity='.65' stroke-width='4'/%3E%3C/svg%3E" },
+      { key:"plasma", cls:"spin", w:26, h:26, hit:0.68, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='p' cx='40%25' cy='35%25' r='70%25'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='.55' stop-color='%237df9ff'/%3E%3Cstop offset='1' stop-color='%23073a5a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='48' cy='48' r='22' fill='url(%23p)' stroke='%23ffffff' stroke-opacity='.75' stroke-width='4'/%3E%3Cpath d='M30 50c6-8 12 8 18 0s12 8 18 0' fill='none' stroke='%23ffd166' stroke-opacity='.35' stroke-width='2.5'/%3E%3C/svg%3E" },
+      { key:"twister", cls:"", w:34, h:34, hit:0.62, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110' viewBox='0 0 110 110'%3E%3Cdefs%3E%3CradialGradient id='t' cx='35%25' cy='30%25' r='75%25'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='.7'/%3E%3Cstop offset='.55' stop-color='%23ffd166'/%3E%3Cstop offset='1' stop-color='%235b2bbf'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='55' cy='55' r='26' fill='url(%23t)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='4'/%3E%3Cpath d='M30 55c8-10 14 10 22 0s14 10 22 0' fill='none' stroke='%237df9ff' stroke-opacity='.55' stroke-width='3'/%3E%3C/svg%3E" },
+      { key:"splitter", cls:"", w:42, h:42, hit:0.60, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cdefs%3E%3CradialGradient id='s' cx='35%25' cy='30%25' r='75%25'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='.75'/%3E%3Cstop offset='.55' stop-color='%23ff4dff'/%3E%3Cstop offset='1' stop-color='%230b2b66'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='60' cy='60' r='30' fill='url(%23s)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='4'/%3E%3Cpath d='M60 30v60' stroke='%23ffd166' stroke-opacity='.75' stroke-width='5'/%3E%3Cpath d='M38 60h44' stroke='%237df9ff' stroke-opacity='.55' stroke-width='4'/%3E%3C/svg%3E" },
+      { key:"seeker", cls:"spin", w:32, h:32, hit:0.64, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='q' cx='35%25' cy='30%25' r='75%25'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='.75'/%3E%3Cstop offset='.55' stop-color='%2367ff6d'/%3E%3Cstop offset='1' stop-color='%23073a5a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='48' cy='48' r='24' fill='url(%23q)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='4'/%3E%3Cpath d='M48 20l6 10-6 4-6-4z' fill='%23ffffff' opacity='.55'/%3E%3Cpath d='M30 58c10-8 12 8 18 0s12 8 18 0' fill='none' stroke='%23ffd166' stroke-opacity='.45' stroke-width='3'/%3E%3C/svg%3E" },
+    ];
+
+    // ===== Collision base (will be modified by upgrades) =====
     const STAR_HIT_SCALE   = 0.85;
+    const BASE_PLAYER_HIT  = 0.82;
 
     // ===== AUDIO =====
     let audioCtx = null;
@@ -874,6 +1059,11 @@
         setTimeout(() => beep({ freq: 1319, dur: 0.06, type:"triangle", vol:0.10 }), 70);
       }).catch(()=>{});
     }
+    function sfxWarn(){
+      ensureAudioReady().then(() => {
+        beep({ freq: 740, dur: 0.05, type:"square", vol:0.06 });
+      }).catch(()=>{});
+    }
 
     // ===== GAME STATE =====
     let running = false;
@@ -885,8 +1075,8 @@
     const pSize = isMobile ? 62 : 56;
 
     const modes = [
-      { name:"EASY", hazardRate: 520, hazardSpeed: 250, starRate: 980, starSpeed: 165, zigzag:false },
-      { name:"HARD", hazardRate: 360, hazardSpeed: 330, starRate: 1150, starSpeed: 195, zigzag:true }
+      { name:"EASY", hazardRate: 520, hazardSpeed: 250, starRate: 980, starSpeed: 165, zigzag:false, telegraphChance: 0.18 },
+      { name:"HARD", hazardRate: 360, hazardSpeed: 330, starRate: 1150, starSpeed: 195, zigzag:true,  telegraphChance: 0.38 }
     ];
     let modeIdx = 0;
 
@@ -895,12 +1085,28 @@
     let lastPx = 0;
 
     let scorePoints = 0;
-    let level = 0; // ✅ SHOP에서 고정되는 레벨(0~100)
+    let level = 0;
 
-    // ===== Economy (STAR bank + upgrades) =====
-    const LS_BANK = "xgp_bank_v1";
-    const LS_UPG  = "xgp_upgrade_v1";
-    const LS_BEST = "xgp_best_v6";
+    // ===== Economy & Upgrades =====
+    const LS_BANK = "xgp_bank_v2";
+    const LS_BEST = "xgp_best_v7";
+
+    // existing "레벨" 업그레이드 저장
+    const LS_LV = "xgp_upgrade_level_v2"; // 0~100
+
+    // new upgrade stats
+    const LS_MUL  = "xgp_upg_mul_v1";     // 0~50
+    const LS_MOVE = "xgp_upg_move_v1";    // 0~50
+    const LS_HIT  = "xgp_upg_hit_v1";     // 0~60
+    const LS_STAR = "xgp_upg_star_v1";    // 0~50
+    const LS_SLOW = "xgp_upg_slow_v1";    // 0~50
+
+    function loadInt(key, def=0){
+      const v = localStorage.getItem(key);
+      const n = Number(v ?? def);
+      return Number.isFinite(n) ? Math.floor(n) : def;
+    }
+    function saveInt(key, n){ localStorage.setItem(key, String(Math.floor(n))); }
 
     function loadBank(){
       const v = localStorage.getItem(LS_BANK);
@@ -911,44 +1117,58 @@
       const n = Number(v);
       return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 10000;
     }
-    function loadUpg(){
-      const v = localStorage.getItem(LS_UPG);
-      const n = Number(v ?? 0);
-      return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.floor(n))) : 0;
-    }
     function saveBank(n){ localStorage.setItem(LS_BANK, String(Math.max(0, Math.floor(n)))); }
-    function saveUpg(n){ localStorage.setItem(LS_UPG, String(Math.max(0, Math.min(100, Math.floor(n))))); }
 
     let bank = loadBank();
-    let upgrades = loadUpg(); // upgrades == level
-    level = upgrades;
+
+    // upgrades state
+    let upgLevel = clamp(loadInt(LS_LV, 0), 0, 100);
+    let upgMul   = clamp(loadInt(LS_MUL, 0), 0, 50);
+    let upgMove  = clamp(loadInt(LS_MOVE,0), 0, 50);
+    let upgHit   = clamp(loadInt(LS_HIT, 0), 0, 60);
+    let upgStar  = clamp(loadInt(LS_STAR,0), 0, 50);
+    let upgSlow  = clamp(loadInt(LS_SLOW,0), 0, 50);
+
+    // "level" used in gameplay
+    level = upgLevel;
 
     let best = Number(localStorage.getItem(LS_BEST) || 0);
     bestEl.textContent = best;
 
-    const hazards = [];
-    const stars = [];
-
-    let hazardTimer = null;
-    let starTimer = null;
-
-    function measureGame(){
-      const r = game.getBoundingClientRect();
-      gW = r.width;
-      gH = r.height;
+    // derived multipliers
+    function scoreBonusMultiplier(){
+      // 점수배수: 업그레이드 1당 +3% -> 최대 50 -> x2.5
+      return 1 + upgMul * 0.03;
     }
-    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+    function moveSpeedMultiplier(){
+      // 이동속도: +2% each -> max 50 -> x2.0
+      return 1 + upgMove * 0.02;
+    }
+    function playerHitScale(){
+      // 히트박스 축소: -0.6% each -> max 60 -> -36%
+      // clamp lower bound to avoid too tiny
+      const scale = BASE_PLAYER_HIT * (1 - upgHit * 0.006);
+      return clamp(scale, 0.42, 0.95);
+    }
+    function starRateMultiplier(){
+      // 별 출현률: +2.5% each -> max 50 -> x2.25
+      return 1 + upgStar * 0.025;
+    }
+    function hazardSpeedMultiplier(){
+      // 폭탄 속도 감소: -1.3% each -> max 50 -> -65%
+      const mul = 1 - upgSlow * 0.013;
+      return clamp(mul, 0.35, 1.0);
+    }
 
-    // ===== Tier visuals (레벨 10단위) =====
+    // ===== Tier visuals =====
     const JET_TIERS = [
       { auraHue:"190deg", auraA:0.18, auraB:0.08, ringHue:"190deg", ringA:0.18, trailHue:"190deg", trailA:0.55, particleRate: 90, filter:"saturate(1.1) contrast(1.05) brightness(1.05)"},
       { auraHue:"70deg",  auraA:0.30, auraB:0.14, ringHue:"70deg",  ringA:0.26, trailHue:"70deg",  trailA:0.70, particleRate: 65, filter:"saturate(2.4) contrast(1.25) brightness(1.12)"},
       { auraHue:"160deg", auraA:0.36, auraB:0.18, ringHue:"160deg", ringA:0.30, trailHue:"160deg", trailA:0.82, particleRate: 55, filter:"saturate(2.9) contrast(1.35) brightness(1.18)"},
       { auraHue:"255deg", auraA:0.42, auraB:0.22, ringHue:"255deg", ringA:0.34, trailHue:"255deg", trailA:0.92, particleRate: 45, filter:"saturate(3.3) contrast(1.45) brightness(1.22)"},
       { auraHue:"330deg", auraA:0.48, auraB:0.26, ringHue:"330deg", ringA:0.38, trailHue:"330deg", trailA:1.00, particleRate: 38, filter:"saturate(3.8) contrast(1.55) brightness(1.25)"},
-      { auraHue:"120deg", auraA:0.55, auraB:0.30, ringHue:"120deg", ringA:0.44, trailHue:"120deg", trailA:1.10, particleRate: 32, filter:"saturate(4.2) contrast(1.65) brightness(1.30)"}
+      { auraHue:"120deg", auraA:0.55, auraB:0.30, ringHue:"120deg", ringA:0.44, trailHue:"120deg", trailA:1.10, particleRate: 32, filter:"saturate(4.2) contrast(1.65) brightness(1.30)"},
     ];
-
     let lastTier = -1;
 
     function currentTier(){
@@ -956,18 +1176,8 @@
       return clamp(t, 0, JET_TIERS.length - 1);
     }
     function tierSkinIndex(){
-      // 스킨은 0~5까지만 준비했지만 60~100도 5번 스킨 계속
       const t = Math.floor(level / 10);
       return clamp(t, 0, JET_SKINS.length - 1);
-    }
-
-    function spawnTierRing(){
-      const r = document.createElement("div");
-      r.className = "tierRing";
-      r.style.left = Math.round(px + pSize/2) + "px";
-      r.style.top  = Math.round(py + pSize/2) + "px";
-      game.appendChild(r);
-      setTimeout(()=> r.remove(), 620);
     }
 
     function applyJetTier(force=false){
@@ -977,7 +1187,6 @@
 
       const conf = JET_TIERS[t];
 
-      // VFX vars
       document.documentElement.style.setProperty("--jetAuraHue", conf.auraHue);
       document.documentElement.style.setProperty("--jetAuraA", String(conf.auraA));
       document.documentElement.style.setProperty("--jetAuraB", String(conf.auraB));
@@ -986,21 +1195,29 @@
       document.documentElement.style.setProperty("--trailHue", conf.trailHue);
       document.documentElement.style.setProperty("--trailA", String(conf.trailA));
 
-      // ✅ 스킨 “이미지 자체 변경”
       jetSprite.style.backgroundImage = `url("${JET_SKINS[tierSkinIndex()]}")`;
-
-      // 살짝 추가 필터로 “확” 느낌
       jetSprite.style.filter = conf.filter + " drop-shadow(0 0 14px rgba(125,249,255,.22))";
 
-      // 강제 느낌: 스킨 바뀔 때 아주 살짝 펌핑
       jetSprite.style.transform = "scale(1.06)";
       setTimeout(()=> { jetSprite.style.transform = "scale(1.0)"; }, 120);
     }
 
-    function gainMultiplier(){
-      // 레벨에 맞는 점수 배수 (원래처럼 1.05^level)
-      return Math.pow(1.05, level);
+    // ===== Objects arrays =====
+    const hazards = [];
+    const stars = [];
+    const warnings = []; // telegraph warnings
+
+    let hazardTimer = null;
+    let starTimer = null;
+    let warnTimer = null;
+
+    // ===== Utils =====
+    function measureGame(){
+      const r = game.getBoundingClientRect();
+      gW = r.width;
+      gH = r.height;
     }
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
     function setPlayerX(x){
       px = clamp(Math.round(x), 0, Math.round(gW - pSize));
@@ -1009,7 +1226,6 @@
       const tilt = clamp(dx * 0.55, -14, 14);
       player.style.transform = `translate3d(${px}px, ${py}px, 0) rotate(${tilt}deg)`;
     }
-
     function positionPlayer(){
       py = Math.round(gH * 0.74);
       player.style.width = pSize + "px";
@@ -1017,7 +1233,6 @@
       player.style.transform = `translate3d(${px}px, ${py}px, 0) rotate(0deg)`;
       lastPx = px;
     }
-
     function showTouchHint(show){
       touchHint.style.display = show ? "block" : "none";
       if (!show) return;
@@ -1044,6 +1259,15 @@
       setTimeout(() => ex.remove(), 520);
     }
 
+    function spawnTierRing(){
+      const r = document.createElement("div");
+      r.className = "tierRing";
+      r.style.left = Math.round(px + pSize/2) + "px";
+      r.style.top  = Math.round(py + pSize/2) + "px";
+      game.appendChild(r);
+      setTimeout(()=> r.remove(), 620);
+    }
+
     function aabbScaled(ax, ay, aw, ah, as, bx, by, bw, bh, bs){
       const aW = aw * as, aH = ah * as;
       const bW = bw * bs, bH = bh * bs;
@@ -1057,20 +1281,22 @@
       return !(aX + aW < bX || aX > bX + bW || aY + aH < bY || aY > bY + bH);
     }
 
-    // ===== Spawning logic =====
+    // ===== Gameplay multipliers =====
+    function gainMultiplier(){
+      // 레벨 배수 * 점수배수 업그레이드
+      return Math.pow(1.05, level) * scoreBonusMultiplier();
+    }
+
+    // ===== Spawning =====
     function pickHazardType(){
       const t = currentTier();
       const r = Math.random();
-
-      // 티어가 높을수록 “특수 타입” 출현 비율 증가
-      // 0: core/mine 중심, 1~: comet/plasma/twister/splitter/seeker 증가
       const weightsByTier = [
-        // [core, mine, comet, bigcore, plasma, twister, splitter, seeker]
-        [0.40, 0.22, 0.10, 0.08, 0.08, 0.06, 0.04, 0.02], // t0
-        [0.30, 0.18, 0.12, 0.10, 0.10, 0.08, 0.07, 0.05], // t1
-        [0.22, 0.14, 0.14, 0.12, 0.12, 0.10, 0.09, 0.07], // t2
-        [0.18, 0.12, 0.15, 0.13, 0.13, 0.11, 0.10, 0.08], // t3
-        [0.14, 0.10, 0.16, 0.14, 0.14, 0.12, 0.11, 0.09], // t4+
+        [0.40, 0.22, 0.10, 0.08, 0.08, 0.06, 0.04, 0.02],
+        [0.30, 0.18, 0.12, 0.10, 0.10, 0.08, 0.07, 0.05],
+        [0.22, 0.14, 0.14, 0.12, 0.12, 0.10, 0.09, 0.07],
+        [0.18, 0.12, 0.15, 0.13, 0.13, 0.11, 0.10, 0.08],
+        [0.14, 0.10, 0.16, 0.14, 0.14, 0.12, 0.11, 0.09],
       ];
       const w = weightsByTier[Math.min(t, weightsByTier.length - 1)];
 
@@ -1082,8 +1308,8 @@
       return HAZARD_TYPES[0];
     }
 
-    function spawnHazard(){
-      const type = pickHazardType();
+    function spawnHazardAt(x, typeOverride=null, isTelegraphSpawn=false){
+      const type = typeOverride || pickHazardType();
 
       const el = document.createElement("div");
       el.className = "hazard " + (type.cls || "");
@@ -1091,13 +1317,10 @@
       el.style.height = type.h + "px";
       el.style.backgroundImage = `url("${type.svg}")`;
 
-      const x = Math.random() * (gW - type.w);
-      const y = -160;
-
+      const y = -180;
       const m = modes[modeIdx];
       const zig = m.zigzag;
 
-      // vx: zigzag 기본, comet/seeker는 더 강하거나 특수
       let vx = 0;
       if (zig) vx = (Math.random() < 0.5 ? -1 : 1) * (70 + Math.random()*120);
 
@@ -1111,29 +1334,33 @@
         (type.key === "comet") ? 1.08 :
         1.00;
 
-      // splitter: 분열 트리거
       const splitAt = (type.key === "splitter") ? (gH * (0.35 + Math.random()*0.25)) : null;
 
       const obj = {
-        el, x, y, vx,
+        el,
+        x: clamp(x, 0, gW - type.w),
+        y,
+        vx,
         w:type.w, h:type.h,
-        hitScale: type.hit,
+        hitScale:type.hit,
         speedMul,
         key:type.key,
         splitAt,
         didSplit:false,
-        phase: Math.random()*Math.PI*2
-      };
-      hazards.push(obj);
+        phase: Math.random()*Math.PI*2,
 
-      el.style.setProperty("--x", x + "px");
-      el.style.setProperty("--y", y + "px");
+        // telegraph dropped ones get a slight speed boost to feel impactful
+        tele: isTelegraphSpawn ? 1.12 : 1.0
+      };
+
+      hazards.push(obj);
+      el.style.setProperty("--x", obj.x + "px");
+      el.style.setProperty("--y", obj.y + "px");
       game.appendChild(el);
     }
 
     function spawnMini(x, y, dir){
-      // splitter 분열용 미니(플라즈마 느낌)
-      const type = HAZARD_TYPES[4];
+      const type = HAZARD_TYPES[4]; // plasma mini
       const el = document.createElement("div");
       el.className = "hazard spin";
       el.style.width = type.w + "px";
@@ -1151,7 +1378,8 @@
         key:"mini",
         splitAt:null,
         didSplit:true,
-        phase: Math.random()*Math.PI*2
+        phase: Math.random()*Math.PI*2,
+        tele: 1.0
       };
       hazards.push(obj);
 
@@ -1166,7 +1394,7 @@
       el.style.backgroundImage = `url("${STAR_SVG}")`;
 
       const x = Math.random() * (gW - 28);
-      const y = -100;
+      const y = -120;
 
       const obj = { el, x, y, w:28, h:28 };
       stars.push(obj);
@@ -1176,11 +1404,54 @@
       game.appendChild(el);
     }
 
+    // ===== Telegraph system (warning then drop) =====
+    function spawnTelegraph(){
+      if (!running) return;
+
+      const m = modes[modeIdx];
+      const chance = m.telegraphChance + Math.min(0.22, currentTier()*0.04); // 티어 올라갈수록 자주
+      if (Math.random() > chance) return;
+
+      // choose X: either random or near player (hard)
+      let x = Math.random() * (gW - 6);
+      if (m.name === "HARD" && Math.random() < 0.55){
+        x = (px + pSize/2) + (Math.random()*180 - 90);
+      }
+      x = clamp(x, 10, gW - 10);
+
+      const line = document.createElement("div");
+      line.className = "warnLine";
+      line.style.setProperty("--x", Math.round(x) + "px");
+
+      const circle = document.createElement("div");
+      circle.className = "warnCircle";
+      circle.style.left = Math.round(x) + "px";
+      circle.style.top  = Math.round(gH * 0.30) + "px"; // impact vibe
+
+      game.appendChild(line);
+      game.appendChild(circle);
+
+      const warn = {
+        line,
+        circle,
+        x,
+        t: 0,
+        duration: (m.name === "HARD" ? 720 : 860) - currentTier()*60, // hard faster
+        // when ends -> drop 1~2 hazards
+        burst: (m.name === "HARD" && Math.random() < 0.35) ? 2 : 1
+      };
+      warnings.push(warn);
+      sfxWarn();
+    }
+
+    // ===== Cleaning / Stop =====
     function clearObjects(){
       for (const o of hazards) o.el.remove();
       for (const o of stars) o.el.remove();
+      for (const w of warnings){ w.line.remove(); w.circle.remove(); }
       hazards.length = 0;
       stars.length = 0;
+      warnings.length = 0;
       [...game.querySelectorAll(".pop,.explosion,.jetParticle,.tierRing")].forEach(el => el.remove());
     }
 
@@ -1190,18 +1461,37 @@
       raf = null;
       if (hazardTimer){ clearInterval(hazardTimer); hazardTimer = null; }
       if (starTimer){ clearInterval(starTimer); starTimer = null; }
+      if (warnTimer){ clearInterval(warnTimer); warnTimer = null; }
     }
 
     function showOverlay(){ overlay.style.display = "flex"; }
     function hideOverlay(){ overlay.style.display = "none"; }
 
+    // ===== HUD / SHOP sync =====
+    function fmt2(n){ return (Math.round(n*100)/100).toFixed(2); }
+
     function syncHud(){
       levelEl.textContent = String(level);
       bankEl.textContent = String(bank);
+
       shopBankEl.textContent = String(bank);
       shopLevelEl.textContent = String(level);
+
+      shopMulEl.textContent = "x" + fmt2(scoreBonusMultiplier());
+      shopMoveEl.textContent = "x" + fmt2(moveSpeedMultiplier());
+      shopHitEl.textContent = Math.round(playerHitScale() / BASE_PLAYER_HIT * 100) + "%";
+      shopStarRateEl.textContent = "x" + fmt2(starRateMultiplier());
+      shopHazSlowEl.textContent = Math.round(hazardSpeedMultiplier()*100) + "%";
+
+      lvNowEl.textContent = String(level);
+      mulNowEl.textContent = String(upgMul);
+      moveNowEl.textContent = String(upgMove);
+      hitNowEl.textContent = String(upgHit);
+      starNowEl.textContent = String(upgStar);
+      slowNowEl.textContent = String(upgSlow);
     }
 
+    // ===== Run flow =====
     function resetRun(){
       stop();
       measureGame();
@@ -1215,7 +1505,8 @@
       positionPlayer();
       showTouchHint(true);
 
-      // 레벨/스킨은 SHOP 상태 유지
+      // keep upgrades, reapply visuals
+      level = upgLevel;
       lastTier = -1;
       applyJetTier(true);
 
@@ -1223,7 +1514,6 @@
     }
 
     function startGame(){
-      // SHOP 레벨을 그대로 사용
       hideOverlay();
       showTouchHint(false);
 
@@ -1232,8 +1522,20 @@
       lastTime = startAt;
 
       const m = modes[modeIdx];
-      hazardTimer = setInterval(spawnHazard, m.hazardRate);
-      starTimer = setInterval(spawnStar, m.starRate);
+
+      // starRate upgrade reduces interval
+      const starInterval = Math.max(380, Math.round(m.starRate / starRateMultiplier()));
+      const hazardInterval = m.hazardRate;
+
+      hazardTimer = setInterval(()=> {
+        // regular hazards still spawn
+        spawnHazardAt(Math.random() * (gW - 60));
+      }, hazardInterval);
+
+      starTimer = setInterval(spawnStar, starInterval);
+
+      // telegraph spawner (quality)
+      warnTimer = setInterval(spawnTelegraph, 220);
 
       raf = requestAnimationFrame(tick);
     }
@@ -1286,6 +1588,7 @@
       setTimeout(()=> jp.remove(), 620);
     }
 
+    // ===== Main loop =====
     function tick(now){
       if (!running) return;
       const dt = Math.min(0.033, (now - lastTime) / 1000);
@@ -1294,12 +1597,13 @@
       const lived = (now - startAt) / 1000;
       timeEl.textContent = lived.toFixed(1);
 
-      // 시간에 따른 속도 상승
+      // difficulty ramp
       const progress = Math.min(Math.max((lived - 10) / 110, 0), 1);
       const speedMultiplier = 1 + progress;
+
       const m = modes[modeIdx];
 
-      // particles
+      // particles rate depends on tier
       const conf = JET_TIERS[currentTier()];
       particleAcc += dt * 1000;
       while (particleAcc >= conf.particleRate){
@@ -1307,47 +1611,64 @@
         spawnJetParticle();
       }
 
-      // hazards update
+      // ===== update warnings (telegraphs) =====
+      for (let i = warnings.length - 1; i >= 0; i--){
+        const w = warnings[i];
+        w.t += dt * 1000;
+
+        // at end -> drop hazards and remove
+        if (w.t >= w.duration){
+          // spawn 1~2 hazards exactly at warning x
+          for (let k=0;k<w.burst;k++){
+            const offset = (w.burst === 2) ? (k===0 ? -18 : 18) : 0;
+            // for telegraph, bias to impactful type
+            const teleType = (Math.random() < 0.45) ? HAZARD_TYPES[3] : (Math.random() < 0.5 ? HAZARD_TYPES[2] : null);
+            spawnHazardAt(w.x + offset, teleType, true);
+          }
+          w.line.remove();
+          w.circle.remove();
+          warnings.splice(i,1);
+        }
+      }
+
+      // ===== hazards =====
+      const slowMul = hazardSpeedMultiplier(); // < 1 means slower hazards
       for (let i = hazards.length - 1; i >= 0; i--){
         const h = hazards[i];
-        const spd = m.hazardSpeed * h.speedMul * speedMultiplier;
-        h.y += spd * dt;
 
-        // movement variations
+        // base speed * type * ramp * slow upgrade * tele boost
+        const base = m.hazardSpeed * h.speedMul * speedMultiplier * slowMul * h.tele;
+        h.y += base * dt;
+
+        // movement
         if (m.zigzag || h.key === "comet" || h.key === "plasma" || h.key === "mini"){
-          h.x += h.vx * dt * (0.85 + progress*0.75);
+          h.x += h.vx * dt * (0.85 + progress*0.75) * (1 + currentTier()*0.04);
         }
-
-        // twister: sine weave even on EASY
         if (h.key === "twister"){
           h.phase += dt * (3.0 + progress*2.0);
           h.x += Math.sin(h.phase) * (55 + progress*40) * dt;
         }
-
-        // seeker: slight homing
         if (h.key === "seeker"){
           const targetX = px + pSize/2 - h.w/2;
-          h.vx += (targetX - h.x) * dt * 1.5; // gentle acceleration
-          h.vx = clamp(h.vx, -260, 260);
+          h.vx += (targetX - h.x) * dt * (1.3 + progress*0.7);
+          h.vx = clamp(h.vx, -280, 280);
           h.x += h.vx * dt;
         }
 
-        // bounds bounce (for those with vx)
         const minX = 0;
         const maxX = gW - h.w;
         if (h.x <= minX){ h.x = minX; h.vx = Math.abs(h.vx); }
         if (h.x >= maxX){ h.x = maxX; h.vx = -Math.abs(h.vx); }
 
-        // splitter mid split
+        // splitter
         if (h.key === "splitter" && !h.didSplit && h.splitAt != null && h.y >= h.splitAt){
           h.didSplit = true;
-          // 분열 이펙트
           spawnTierRing();
-          spawnMini(h.x - 8, h.y + 8, -1);
-          spawnMini(h.x + 8, h.y + 8,  1);
+          spawnMini(h.x - 10, h.y + 10, -1);
+          spawnMini(h.x + 10, h.y + 10,  1);
         }
 
-        if (h.y > gH + 200){
+        if (h.y > gH + 220){
           h.el.remove();
           hazards.splice(i, 1);
           continue;
@@ -1356,19 +1677,20 @@
         h.el.style.setProperty("--x", h.x + "px");
         h.el.style.setProperty("--y", h.y + "px");
 
-        if (aabbScaled(px, py, pSize, pSize, PLAYER_HIT_SCALE, h.x, h.y, h.w, h.h, h.hitScale)){
+        // collision with upgraded hitbox scale
+        if (aabbScaled(px, py, pSize, pSize, playerHitScale(), h.x, h.y, h.w, h.h, h.hitScale)){
           spawnExplosion(h.x + h.w/2, h.y + h.h/2);
           gameOver();
           return;
         }
       }
 
-      // stars update
+      // ===== stars =====
       for (let i = stars.length - 1; i >= 0; i--){
         const s = stars[i];
         s.y += m.starSpeed * (speedMultiplier * 1.45) * dt;
 
-        if (s.y > gH + 160){
+        if (s.y > gH + 180){
           s.el.remove();
           stars.splice(i, 1);
           continue;
@@ -1377,12 +1699,11 @@
         s.el.style.setProperty("--x", s.x + "px");
         s.el.style.setProperty("--y", s.y + "px");
 
-        if (aabbScaled(px, py, pSize, pSize, PLAYER_HIT_SCALE, s.x, s.y, s.w, s.h, STAR_HIT_SCALE)){
+        if (aabbScaled(px, py, pSize, pSize, playerHitScale(), s.x, s.y, s.w, s.h, STAR_HIT_SCALE)){
           sfxCoin();
           s.el.remove();
           stars.splice(i, 1);
 
-          // ✅ 레벨 고정: 점수만 레벨 배수로 증가
           const gain = gainMultiplier();
           scorePoints += gain;
 
@@ -1397,7 +1718,7 @@
       raf = requestAnimationFrame(tick);
     }
 
-    // ===== INPUT =====
+    // ===== Input =====
     const keyState = { left:false, right:false };
     function moveBy(dx){ setPlayerX(px + dx); }
 
@@ -1413,7 +1734,8 @@
     });
 
     function controlLoop(){
-      const speed = isMobile ? 7 : 6;
+      const base = isMobile ? 7 : 6;
+      const speed = base * moveSpeedMultiplier();
       if (keyState.left) moveBy(-speed);
       if (keyState.right) moveBy(speed);
       requestAnimationFrame(controlLoop);
@@ -1436,67 +1758,179 @@
     game.addEventListener("touchmove", (e)=>{ if(dragging) setPlayerX(pointerX(e)); }, {passive:false});
     game.addEventListener("touchend", ()=> dragging = false);
 
-    // ===== SHOP actions =====
-    function canBuy(n){
-      if (n <= 0) return false;
-      const cost = 100 * n;
-      if (level + n > 100) return false;
-      if (bank < cost) return false;
-      return true;
-    }
+    // ===== Shop buy helpers =====
+    const COST = 100;
 
-    function buy(n){
-      if (!canBuy(n)){
+    function canSpend(n){ return bank >= n; }
+    function spend(n){ bank -= n; saveBank(bank); }
+
+    function buyStat(which){
+      if (!canSpend(COST)){
         popText(px + pSize/2 - 30, py - 20, "NO STAR!");
         return;
       }
-      const cost = 100 * n;
-      bank -= cost;
-      level += n;
 
-      saveBank(bank);
-      saveUpg(level);
+      if (which === "lv"){
+        if (upgLevel >= 100) { popText(px + pSize/2 - 18, py - 20, "MAX!"); return; }
+        spend(COST);
+        upgLevel += 1;
+        saveInt(LS_LV, upgLevel);
+        level = upgLevel;
+        lastTier = -1;
+        applyJetTier(true);
+        spawnTierRing();
+        sfxBuy();
+      }
+
+      if (which === "mul"){
+        if (upgMul >= 50) { popText(px + pSize/2 - 18, py - 20, "MAX!"); return; }
+        spend(COST);
+        upgMul += 1;
+        saveInt(LS_MUL, upgMul);
+        sfxBuy();
+      }
+
+      if (which === "move"){
+        if (upgMove >= 50) { popText(px + pSize/2 - 18, py - 20, "MAX!"); return; }
+        spend(COST);
+        upgMove += 1;
+        saveInt(LS_MOVE, upgMove);
+        sfxBuy();
+      }
+
+      if (which === "hit"){
+        if (upgHit >= 60) { popText(px + pSize/2 - 18, py - 20, "MAX!"); return; }
+        spend(COST);
+        upgHit += 1;
+        saveInt(LS_HIT, upgHit);
+        sfxBuy();
+      }
+
+      if (which === "star"){
+        if (upgStar >= 50) { popText(px + pSize/2 - 18, py - 20, "MAX!"); return; }
+        spend(COST);
+        upgStar += 1;
+        saveInt(LS_STAR, upgStar);
+        sfxBuy();
+      }
+
+      if (which === "slow"){
+        if (upgSlow >= 50) { popText(px + pSize/2 - 18, py - 20, "MAX!"); return; }
+        spend(COST);
+        upgSlow += 1;
+        saveInt(LS_SLOW, upgSlow);
+        sfxBuy();
+      }
+
       syncHud();
+    }
 
-      // 스킨 즉시 갱신
+    buyLvBtn.addEventListener("click", ()=> buyStat("lv"));
+    buyMulBtn.addEventListener("click", ()=> buyStat("mul"));
+    buyMoveBtn.addEventListener("click", ()=> buyStat("move"));
+    buyHitBtn.addEventListener("click", ()=> buyStat("hit"));
+    buyStarRateBtn.addEventListener("click", ()=> buyStat("star"));
+    buyHazSlowBtn.addEventListener("click", ()=> buyStat("slow"));
+
+    // +10 pack: 한 번에 10개(가능한 만큼) 자동 분배 (레벨 2, 점수 2, 이동 2, 히트 2, 별 1, 느려짐 1)
+    buy10packBtn.addEventListener("click", ()=>{
+      const need = COST * 10;
+      if (!canSpend(need)){
+        popText(px + pSize/2 - 32, py - 20, "NEED 1000");
+        return;
+      }
+      // distribute with caps
+      const plan = [
+        ["lv", 2, ()=> upgLevel < 100],
+        ["mul",2, ()=> upgMul < 50],
+        ["move",2,()=> upgMove < 50],
+        ["hit",2, ()=> upgHit < 60],
+        ["star",1,()=> upgStar < 50],
+        ["slow",1,()=> upgSlow < 50],
+      ];
+
+      spend(need);
+
+      for (const [k, cnt, ok] of plan){
+        for (let i=0;i<cnt;i++){
+          if (!ok()) continue;
+          if (k==="lv"){ upgLevel++; }
+          if (k==="mul"){ upgMul++; }
+          if (k==="move"){ upgMove++; }
+          if (k==="hit"){ upgHit++; }
+          if (k==="star"){ upgStar++; }
+          if (k==="slow"){ upgSlow++; }
+        }
+      }
+
+      // save
+      saveInt(LS_LV, upgLevel);
+      saveInt(LS_MUL, upgMul);
+      saveInt(LS_MOVE, upgMove);
+      saveInt(LS_HIT, upgHit);
+      saveInt(LS_STAR, upgStar);
+      saveInt(LS_SLOW, upgSlow);
+
+      level = upgLevel;
       lastTier = -1;
       applyJetTier(true);
       spawnTierRing();
       sfxBuy();
-    }
+      syncHud();
+    });
 
-    buy1Btn.addEventListener("click", ()=> buy(1));
-    buy10Btn.addEventListener("click", ()=> buy(10));
     buyMaxBtn.addEventListener("click", ()=>{
-      const maxByLevel = 100 - level;
-      const maxByBank = Math.floor(bank / 100);
-      const n = Math.max(0, Math.min(maxByLevel, maxByBank));
-      if (n <= 0){
-        popText(px + pSize/2 - 26, py - 20, "NOPE!");
+      if (upgLevel >= 100){ popText(px + pSize/2 - 18, py - 20, "MAX!"); return; }
+      const needLv = 100 - upgLevel;
+      const maxCan = Math.floor(bank / COST);
+      const buyN = Math.min(needLv, maxCan);
+      if (buyN <= 0){
+        popText(px + pSize/2 - 30, py - 20, "NO STAR!");
         return;
       }
-      buy(n);
+      spend(buyN * COST);
+      upgLevel += buyN;
+      saveInt(LS_LV, upgLevel);
+      level = upgLevel;
+      lastTier = -1;
+      applyJetTier(true);
+      spawnTierRing();
+      sfxBuy();
+      syncHud();
     });
 
     resetShopBtn.addEventListener("click", ()=>{
-      // 완전 초기화: STAR=10,000, 레벨=0
       bank = 10000;
-      level = 0;
-      saveBank(bank);
-      saveUpg(level);
-      syncHud();
+      upgLevel = 0;
+      upgMul = 0;
+      upgMove = 0;
+      upgHit = 0;
+      upgStar = 0;
+      upgSlow = 0;
 
+      saveBank(bank);
+      saveInt(LS_LV, upgLevel);
+      saveInt(LS_MUL, upgMul);
+      saveInt(LS_MOVE, upgMove);
+      saveInt(LS_HIT, upgHit);
+      saveInt(LS_STAR, upgStar);
+      saveInt(LS_SLOW, upgSlow);
+
+      level = upgLevel;
       lastTier = -1;
       applyJetTier(true);
       spawnTierRing();
       popText(px + pSize/2 - 42, py - 20, "RESET!");
+      syncHud();
     });
 
     // ===== Buttons =====
     startBtn.addEventListener("click", () => {
       ensureAudioReady().then(() => { sfxStart(); startGame(); }).catch(() => startGame());
     });
+
     restartBtn.addEventListener("click", () => resetRun());
+
     hardBtn.addEventListener("click", () => {
       modeIdx = (modeIdx + 1) % modes.length;
       hardBtn.textContent = "난이도: " + modes[modeIdx].name;
@@ -1510,7 +1944,7 @@
       showTouchHint(!running);
     });
 
-    // ===== init =====
+    // ===== Init =====
     (function init(){
       startBg.style.backgroundImage = `url("${START_SCREEN_URL}")`;
 
@@ -1518,14 +1952,23 @@
       px = Math.round(gW/2 - pSize/2);
       positionPlayer();
 
-      // apply stored economy
       bank = loadBank();
-      level = loadUpg();
-      syncHud();
+      upgLevel = clamp(loadInt(LS_LV, 0), 0, 100);
+      upgMul   = clamp(loadInt(LS_MUL, 0), 0, 50);
+      upgMove  = clamp(loadInt(LS_MOVE,0), 0, 50);
+      upgHit   = clamp(loadInt(LS_HIT, 0), 0, 60);
+      upgStar  = clamp(loadInt(LS_STAR,0), 0, 50);
+      upgSlow  = clamp(loadInt(LS_SLOW,0), 0, 50);
+
+      level = upgLevel;
+
+      best = Number(localStorage.getItem(LS_BEST) || 0);
+      bestEl.textContent = best;
 
       lastTier = -1;
       applyJetTier(true);
 
+      syncHud();
       showTouchHint(true);
       showOverlay();
     })();
