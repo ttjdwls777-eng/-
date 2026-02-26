@@ -70,7 +70,7 @@
       100%{ transform: translate(0,0) rotate(0deg); }
     }
 
-    .wrap{ width:100%; max-width:540px; }
+    .wrap{ width:100%; max-width:560px; }
 
     .title{
       display:flex; align-items:center; justify-content:space-between;
@@ -199,7 +199,6 @@
       filter: drop-shadow(0 10px 14px rgba(0,0,0,.35));
       transform: translate3d(0,0,0) rotate(0deg);
     }
-
     .jetSprite{
       width:100%;
       height:100%;
@@ -210,8 +209,6 @@
       filter: var(--jetFilter, none);
       transition: filter 260ms ease;
     }
-
-    /* 엔진 불꽃 (짧고 타이트) */
     .player::before{
       content:"";
       position:absolute;
@@ -233,22 +230,18 @@
       pointer-events:none;
     }
     @keyframes flameFlicker{
-      from{
-        transform: translateX(-50%) scaleY(.92) scaleX(.98) translateY(0);
-        opacity:.72;
-      }
-      to{
-        transform: translateX(-50%) scaleY(1.12) scaleX(1.02) translateY(1px);
-        opacity:.92;
-      }
+      from{ transform: translateX(-50%) scaleY(.92) scaleX(.98) translateY(0); opacity:.72; }
+      to  { transform: translateX(-50%) scaleY(1.12) scaleX(1.02) translateY(1px); opacity:.92; }
     }
 
-    /* 장애물/별 (transform 이동 최적화) */
+    /* ===== 오브젝트: JS는 --x/--y만 바꿈, CSS는 그것으로 transform 계산 (충돌 제거) ===== */
     .hazard, .star{
       position:absolute;
       pointer-events:none;
       z-index:3;
       will-change: transform;
+      opacity:1;
+      transform: translate3d(var(--x, 0px), var(--y, 0px), 0);
     }
 
     .hazard{
@@ -258,12 +251,11 @@
       background-repeat:no-repeat;
       background-position:center;
       filter: drop-shadow(0 10px 18px rgba(0,0,0,.45)) drop-shadow(0 0 14px rgba(140,90,255,.35));
-      opacity:0;
-      animation: spawnPop .12s ease-out forwards, bombFloat .6s ease-in-out infinite;
+      animation: hazardWiggle .55s ease-in-out infinite;
     }
-    @keyframes bombFloat{
+    @keyframes hazardWiggle{
       0%,100%{ transform: translate3d(var(--x,0px), var(--y,0px), 0) rotate(-2deg) scale(1); }
-      50%{ transform: translate3d(var(--x,0px), var(--y,0px), 0) rotate(2deg) scale(1.03); }
+      50%     { transform: translate3d(var(--x,0px), var(--y,0px), 0) rotate( 2deg) scale(1.03); }
     }
 
     .star{
@@ -272,16 +264,11 @@
       background-repeat:no-repeat;
       background-position:center;
       filter: drop-shadow(0 0 12px rgba(255,210,90,.45));
-      opacity:0;
-      animation: spawnPop .12s ease-out forwards, starPulse .75s ease-in-out infinite;
+      animation: starPulse .75s ease-in-out infinite;
     }
     @keyframes starPulse{
       0%,100%{ transform: translate3d(var(--x,0px), var(--y,0px), 0) scale(1); }
-      50%{ transform: translate3d(var(--x,0px), var(--y,0px), 0) scale(1.12); }
-    }
-    @keyframes spawnPop{
-      from{ opacity:0; }
-      to{ opacity:1; }
+      50%     { transform: translate3d(var(--x,0px), var(--y,0px), 0) scale(1.12); }
     }
 
     .explosion{
@@ -346,82 +333,38 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:18px;
-      background: linear-gradient(180deg, rgba(0,0,0,.58), rgba(0,0,0,.22));
-      backdrop-filter: blur(2px);
-      z-index: 20;
+      padding:0;
+      z-index: 30;
     }
 
-    /* 포스터 느낌: 패널 대신 “이미지 느낌” 화면 */
-    .startScreen{
-      width:min(420px, 94%);
-      height:min(520px, 92%);
-      border-radius:16px;
-      border:2px solid rgba(255,180,90,.85);
-      box-shadow: 0 18px 60px rgba(0,0,0,.55);
-      overflow:hidden;
-      position:relative;
-      background:
-        radial-gradient(circle at 20% 18%, rgba(255,255,255,.14), transparent 42%),
-        radial-gradient(circle at 80% 35%, rgba(255,120,60,.20), transparent 45%),
-        radial-gradient(circle at 30% 88%, rgba(125,249,255,.10), transparent 52%),
-        linear-gradient(135deg, rgba(15,20,55,.96), rgba(50,12,80,.92) 55%, rgba(140,18,25,.90));
-    }
-
-    .startScreen::before{
-      content:"";
-      position:absolute; inset:-20%;
-      background:
-        radial-gradient(#ffffffcc 1px, transparent 1px),
-        radial-gradient(#ffffff88 1px, transparent 1px),
-        radial-gradient(rgba(125,249,255,.55) 1px, transparent 1px);
-      background-size: 140px 140px, 220px 220px, 360px 360px;
-      background-position: 0 0, 50px 90px, 140px 160px;
-      opacity:.35;
-      transform: rotate(8deg);
-      filter: drop-shadow(0 0 10px rgba(125,249,255,.18));
-      animation: starDrift 9s linear infinite;
-      pointer-events:none;
-    }
-
-    .posterJet{
-      position:absolute;
-      left:50%;
-      top:52%;
-      width:min(520px, 120%);
-      height:min(520px, 120%);
-      transform: translate(-50%,-50%) rotate(-10deg);
-      background-repeat:no-repeat;
+    /* ✅ 시작 화면 이미지가 게임 네모칸 전체를 채움 */
+    .startBg{
+      position:absolute; inset:0;
       background-position:center;
-      background-size:contain;
-      opacity:.95;
-      filter:
-        drop-shadow(0 20px 40px rgba(0,0,0,.55))
-        saturate(1.15) contrast(1.05);
-      pointer-events:none;
+      background-size:cover;
+      background-repeat:no-repeat;
+      filter: saturate(1.05) contrast(1.05);
     }
-
-    .posterVignette{
+    .startBg::after{
+      content:"";
       position:absolute; inset:0;
       background:
-        radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 35%, rgba(0,0,0,.55) 78%),
-        linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.55));
-      pointer-events:none;
+        radial-gradient(circle at 50% 40%, rgba(0,0,0,0) 35%, rgba(0,0,0,.55) 80%),
+        linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.65));
     }
 
-    .posterFooter{
+    .startUI{
       position:absolute;
       left:0; right:0; bottom:0;
-      padding:18px 16px 16px;
+      padding:18px 16px calc(16px + env(safe-area-inset-bottom));
       display:flex;
       flex-direction:column;
       gap:12px;
       align-items:center;
       justify-content:center;
-      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.55));
+      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.62));
     }
-
-    .posterHint{
+    .startHint{
       font-size:9px;
       color:var(--muted);
       text-shadow: 2px 2px 0 rgba(0,0,0,.45);
@@ -429,19 +372,6 @@
       text-align:center;
       opacity:.95;
     }
-
-    .panel{
-      width:min(360px, 92%);
-      background: rgba(10,14,34,.92);
-      border:2px solid var(--line);
-      border-radius:14px;
-      padding:14px;
-      text-align:center;
-      box-shadow: 0 16px 50px rgba(0,0,0,.4);
-    }
-    .panel h2{ margin:0 0 8px; font-size:12px; }
-    .panel p{ margin:0 0 12px; color:var(--muted); font-size:9px; line-height:1.6; }
-    .panel .big{ font-size:11px; color:var(--txt); margin-bottom:10px; }
 
     .pop{
       position:absolute;
@@ -538,18 +468,15 @@
           <div class="hintText">여기 터치</div>
         </div>
 
+        <!-- ✅ 시작 화면: 네가 준 이미지로 전체 채움 -->
         <div class="overlay" id="overlay">
-          <!-- 시작 화면(포스터 느낌) -->
-          <div class="startScreen" id="startScreen">
-            <div class="posterJet" id="posterJet"></div>
-            <div class="posterVignette"></div>
-            <div class="posterFooter">
-              <div class="posterHint">
-                보라 폭탄을 피하고<br/>
-                황금 별을 모아 업그레이드!
-              </div>
-              <button class="primary" id="startBtn">시작하기</button>
+          <div class="startBg" id="startBg"></div>
+          <div class="startUI">
+            <div class="startHint">
+              보라 폭탄을 피하고 황금 별을 모아 업그레이드!<br/>
+              100개마다 1레벨, 레벨당 별 획득량 5% 증가
             </div>
+            <button class="primary" id="startBtn">시작하기</button>
           </div>
         </div>
       </div>
@@ -570,28 +497,30 @@
     const game = document.getElementById("game");
     const player = document.getElementById("player");
     const jetSprite = document.getElementById("jetSprite");
+
     const overlay = document.getElementById("overlay");
     const startBtn = document.getElementById("startBtn");
     const restartBtn = document.getElementById("restartBtn");
     const hardBtn = document.getElementById("hardBtn");
     const touchHint = document.getElementById("touchHint");
-    const posterJet = document.getElementById("posterJet");
+    const startBg = document.getElementById("startBg");
 
     const timeEl = document.getElementById("time");
     const scoreEl = document.getElementById("score");
     const levelEl = document.getElementById("level");
     const bestEl = document.getElementById("best");
 
-    // ✅ 제트 이미지 (너가 쓰던 깃허브 raw)
+    // ✅ 네가 준 "게임 시작 화면" (blob은 이미지가 아니라 페이지일 수 있어서 ?raw=1 붙임)
+    const START_SCREEN_URL =
+      "https://github.com/ttjdwls777-eng/-/blob/main/%EA%B2%8C%EC%9E%84%EC%8B%9C%EC%9E%91%20%ED%99%94%EB%A9%B4.png?raw=1";
+
     const JET_RAW_URL =
       "https://raw.githubusercontent.com/faglobalxgp2024-design/index.html/main/%EA%B2%8C%EC%9E%84%EC%A1%B4.png";
 
-    // 장애물/별 SVG
-    const HAZARD_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='g' cx='30%25' cy='25%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='.65'/%3E%3Cstop offset='40%25' stop-color='%235b2bbf' stop-opacity='1'/%3E%3Cstop offset='100%25' stop-color='%23210a4f' stop-opacity='1'/%3E%3C/radialGradient%3E%3ClinearGradient id='m' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%232b2f3a'/%3E%3Cstop offset='100%25' stop-color='%230d0f14'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='44' cy='52' r='30' fill='url(%23g)' stroke='%23ffffff' stroke-opacity='.9' stroke-width='4'/%3E%3Cpath d='M30 48c8-10 16 10 24 0s16 10 24 0' fill='none' stroke='%237df9ff' stroke-opacity='.65' stroke-width='3'/%3E%3Cpath d='M34 60c10-8 12 8 22 0s14 8 22 0' fill='none' stroke='%23ffd166' stroke-opacity='.45' stroke-width='2.5'/%3E%3Crect x='56' y='12' width='18' height='10' rx='5' fill='url(%23m)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='3' transform='rotate(18 56 12)'/%3E%3Cpath d='M60 18c-8 10 10 10 2 22' fill='none' stroke='%23d9b48f' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='58' cy='48' r='6' fill='%23ffffff' fill-opacity='.2'/%3E%3C/svg%3E";
+    const HAZARD_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='g' cx='30%25' cy='25%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='.65'/%3E%3Cstop offset='40%25' stop-color='%235b2bbf' stop-opacity='1'/%3E%3Cstop offset='100%25' stop-color='%23210a4f' stop-opacity='1'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='44' cy='52' r='30' fill='url(%23g)' stroke='%23ffffff' stroke-opacity='.9' stroke-width='4'/%3E%3Cpath d='M30 48c8-10 16 10 24 0s16 10 24 0' fill='none' stroke='%237df9ff' stroke-opacity='.65' stroke-width='3'/%3E%3Cpath d='M34 60c10-8 12 8 22 0s14 8 22 0' fill='none' stroke='%23ffd166' stroke-opacity='.45' stroke-width='2.5'/%3E%3C/svg%3E";
+    const STAR_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='s' cx='50%25' cy='35%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23fff4b3'/%3E%3Cstop offset='55%25' stop-color='%23ffd166'/%3E%3Cstop offset='100%25' stop-color='%23ff9a3c'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M48 6l11 24 26 3-19 18 5 26-23-13-23 13 5-26L11 33l26-3z' fill='url(%23s)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='3'/%3E%3C/svg%3E";
 
-    const STAR_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='s' cx='50%25' cy='35%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23fff4b3'/%3E%3Cstop offset='55%25' stop-color='%23ffd166'/%3E%3Cstop offset='100%25' stop-color='%23ff9a3c'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M48 6l11 24 26 3-19 18 5 26-23-13-23 13 5-26L11 33l26-3z' fill='url(%23s)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='3'/%3E%3Cpath d='M48 18l7 15 16 2-12 11 3 16-14-8-14 8 3-16-12-11 16-2z' fill='%23ffffff' fill-opacity='.16'/%3E%3C/svg%3E";
-
-    // ===== 사운드(원래 유지) =====
+    // ===== 사운드 (원래 유지) =====
     let audioCtx = null;
     let audioReady = null;
 
@@ -605,25 +534,6 @@
         try { await audioCtx.resume(); } catch(e) {}
       }
     }
-    function playTone(freq, dur=0.11, type="square", vol=0.05){
-      if (!audioCtx || audioCtx.state !== "running") return;
-      const t = audioCtx.currentTime;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, t);
-
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(vol, t + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      osc.start(t);
-      osc.stop(t + dur + 0.02);
-    }
     function beep({ freq=440, dur=0.08, type="square", vol=0.18, endFreq=null } = {}){
       if (!audioCtx || audioCtx.state !== "running") return;
       const t = audioCtx.currentTime;
@@ -633,9 +543,7 @@
 
       osc.type = type;
       osc.frequency.setValueAtTime(freq, t);
-      if (endFreq != null) {
-        osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), t + dur);
-      }
+      if (endFreq != null) osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), t + dur);
 
       gain.gain.setValueAtTime(0.0001, t);
       gain.gain.exponentialRampToValueAtTime(vol, t + 0.01);
@@ -647,103 +555,6 @@
       osc.start(t);
       osc.stop(t + dur + 0.02);
     }
-    function snare(){
-      if (!audioCtx || audioCtx.state !== "running") return;
-      const t = audioCtx.currentTime;
-      const dur = 0.045;
-
-      const bufferSize = Math.floor(audioCtx.sampleRate * dur);
-      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-      const data = buffer.getChannelData(0);
-
-      for (let i=0;i<bufferSize;i++){
-        data[i] = (Math.random()*2-1) * (1 - i/bufferSize);
-      }
-
-      const src = audioCtx.createBufferSource();
-      src.buffer = buffer;
-
-      const gain = audioCtx.createGain();
-      gain.gain.setValueAtTime(0.035, t);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-
-      src.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      src.start(t);
-      src.stop(t + dur + 0.02);
-    }
-    function kick(){
-      playTone(90, 0.06, "sine", 0.09);
-      setTimeout(()=>playTone(60, 0.05, "sine", 0.06), 15);
-    }
-
-    const NOTE = {
-      C4:261.63, D4:293.66, E4:329.63, F4:349.23, G4:392.00, A4:440.00, B4:493.88,
-      C5:523.25, D5:587.33, E5:659.25, F5:698.46, G5:783.99, A5:880.00, B5:987.77,
-      C3:130.81, D3:146.83, E3:164.81, F3:174.61, G3:196.00, A3:220.00
-    };
-
-    let bgmOn = true;
-    let bgmTimer = null;
-    let bgmStep = 0;
-    let bgmTempo = 152;
-    let bgmBar = 0;
-
-    const melodyA = ["E5",null,"G5",null, "A5",null,"G5",null, "E5",null,"D5",null, "C5",null,"D5",null];
-    const leadA   = [null,"C5",null,"D5", null,"E5",null,"G5", null,"C5",null,"D5", null,"E5",null,"G5"];
-    const bassA   = ["C3",null,"C3",null, "A3",null,"A3",null, "F3",null,"F3",null, "G3",null,"G3",null];
-    const drumA   = [1,0,0,0, 2,0,1,0, 1,0,0,0, 2,0,1,0];
-
-    const melodyB = ["G5",null,"A5",null, "B5",null,"A5",null, "G5",null,"E5",null, "D5",null,"E5",null];
-    const leadB   = [null,"D5",null,"E5", null,"G5",null,"A5", null,"D5",null,"E5", null,"G5",null,"A5"];
-    const bassB   = ["A3",null,"A3",null, "F3",null,"F3",null, "G3",null,"G3",null, "C3",null,"C3",null];
-    const drumB   = [1,0,0,2, 0,0,1,0, 1,0,0,2, 0,2,1,0];
-
-    const fillMelody = [null,"E5","G5","A5", null,"G5","E5","D5", null,"E5","G5","A5", null,"B5","A5","G5"];
-    const fillDrum   = [1,2,1,2, 1,2,1,2, 1,2,1,2, 1,2,1,2];
-
-    function bgmTick(){
-      if (!bgmOn) return;
-      const stepMs = (60000 / bgmTempo) / 4;
-      const i = bgmStep % 16;
-
-      const useB = (Math.floor(bgmBar / 4) % 2) === 1;
-      const isFillBar = (bgmBar > 0 && bgmBar % 8 === 0 && Math.random() < 0.45);
-
-      const M = isFillBar ? fillMelody : (useB ? melodyB : melodyA);
-      const L = useB ? leadB : leadA;
-      const B = useB ? bassB : bassA;
-      const D = isFillBar ? fillDrum : (useB ? drumB : drumA);
-
-      const m = M[i]; if (m) playTone(NOTE[m], 0.11, "square", 0.058);
-      const l = L[i]; if (l && !isFillBar) playTone(NOTE[l], 0.09, "triangle", 0.03);
-      const b = B[i]; if (b) playTone(NOTE[b], 0.10, "triangle", 0.045);
-
-      const d = D[i];
-      if (d === 1) kick();
-      if (d === 2) snare();
-
-      bgmStep = (bgmStep + 1) % 16;
-      if (bgmStep === 0) bgmBar++;
-
-      bgmTimer = setTimeout(bgmTick, stepMs);
-    }
-    function startBGM(){
-      if (bgmTimer) return;
-      bgmOn = true;
-      bgmStep = 0;
-      bgmBar = 0;
-      ensureAudioReady().then(() => { if (!bgmTimer) bgmTick(); }).catch(()=>{});
-    }
-    function stopBGM(){
-      bgmOn = false;
-      if (bgmTimer){
-        clearTimeout(bgmTimer);
-        bgmTimer = null;
-      }
-    }
-
     function sfxStart(){
       ensureAudioReady().then(() => {
         beep({ freq: 523, dur: 0.06, type:"square", vol:0.12 });
@@ -759,11 +570,10 @@
       ensureAudioReady().then(() => {
         beep({ freq: 140, dur: 0.10, type:"square",  vol:0.28, endFreq: 70 });
         setTimeout(() => beep({ freq: 90, dur: 0.12, type:"sawtooth", vol:0.22, endFreq: 40 }), 70);
-        setTimeout(() => beep({ freq: 220, dur: 0.05, type:"triangle", vol:0.18, endFreq: 160 }), 130);
       }).catch(()=>{});
     }
 
-    // ===== 최적화용 상태 =====
+    // ===== 게임 상태 =====
     let running = false;
     let raf = null;
     let lastTime = 0;
@@ -772,76 +582,65 @@
     const isMobile = matchMedia("(max-width: 600px)").matches;
     const pSize = isMobile ? 62 : 56;
 
-    // 난이도
     const modes = [
       { name:"EASY", hazardRate: 640, hazardSpeed: 230, starRate: 1020, starSpeed: 160, zigzag:false },
       { name:"HARD", hazardRate: 420, hazardSpeed: 305, starRate: 1200, starSpeed: 185, zigzag:true }
     ];
     let modeIdx = 0;
 
-    // 플레이어 좌표(게임 내부 좌표)
     let gW = 0, gH = 0;
     let px = 0, py = 0;
     let lastPx = 0;
 
-    // 점수/업그레이드
-    let scorePoints = 0;               // 실제 표시 점수(증가 적용)
-    let totalStarsCollected = 0;       // 업그레이드용 "순수 별 개수"
-    let level = 0;                     // 0~100
+    let scorePoints = 0;
+    let totalStarsCollected = 0;
+    let level = 0;
 
-    let best = Number(localStorage.getItem("xgp_best_v2") || 0);
+    let best = Number(localStorage.getItem("xgp_best_v3") || 0);
     bestEl.textContent = best;
 
-    // 오브젝트 풀(간단 버전)
     const hazards = [];
     const stars = [];
 
-    // 타이머
     let hazardTimer = null;
     let starTimer = null;
-
-    // 10단계마다 변화(필터)
-    function applyJetTier(){
-      const tier = Math.floor(level / 10); // 0~10
-      // tier별 hue rotate + saturate + glow 약간
-      const hue = tier * 18;               // 0,18,36...
-      const sat = 1 + tier * 0.03;         // 살짝 선명
-      const con = 1 + tier * 0.015;
-      const glow = 0.12 + tier * 0.02;
-
-      const f = `hue-rotate(${hue}deg) saturate(${sat}) contrast(${con}) drop-shadow(0 0 10px rgba(125,249,255,${glow}))`;
-      jetSprite.style.filter = f;
-    }
-
-    // 레벨/배율
-    function gainMultiplier(){
-      // ✅ 5%씩 증가(복리): 1.05^level
-      return Math.pow(1.05, level);
-    }
-    function recalcLevel(){
-      const newLevel = Math.min(100, Math.floor(totalStarsCollected / 100));
-      if (newLevel !== level){
-        level = newLevel;
-        levelEl.textContent = String(level);
-        applyJetTier();
-        // 레벨업 팝업
-        popText(px + pSize/2, py - 12, "LV UP!");
-      } else {
-        levelEl.textContent = String(level);
-      }
-    }
-
-    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
     function measureGame(){
       const r = game.getBoundingClientRect();
       gW = r.width;
       gH = r.height;
     }
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+    // 10단계마다 색/필터 변화
+    function applyJetTier(){
+      const tier = Math.floor(level / 10); // 0~10
+      const hue = tier * 18;
+      const sat = 1 + tier * 0.03;
+      const con = 1 + tier * 0.015;
+      const glow = 0.12 + tier * 0.02;
+      jetSprite.style.filter =
+        `hue-rotate(${hue}deg) saturate(${sat}) contrast(${con}) drop-shadow(0 0 10px rgba(125,249,255,${glow}))`;
+    }
+
+    function gainMultiplier(){
+      return Math.pow(1.05, level); // 레벨당 5% 증가
+    }
+
+    function recalcLevel(){
+      const newLevel = Math.min(100, Math.floor(totalStarsCollected / 100));
+      if (newLevel !== level){
+        level = newLevel;
+        levelEl.textContent = String(level);
+        applyJetTier();
+        popText(px + pSize/2, py - 12, "LV UP!");
+      } else {
+        levelEl.textContent = String(level);
+      }
+    }
 
     function setPlayerX(x){
       px = clamp(Math.round(x), 0, Math.round(gW - pSize));
-      // transform 기반 (레이아웃 최소)
       const dx = px - lastPx;
       lastPx = px;
       const tilt = clamp(dx * 0.55, -14, 14);
@@ -859,13 +658,9 @@
     function showTouchHint(show){
       touchHint.style.display = show ? "block" : "none";
       if (!show) return;
-      // 힌트 위치(대충 중앙)
       touchHint.style.left = Math.round(px + pSize/2) + "px";
       touchHint.style.top  = Math.round(py + pSize + 8) + "px";
     }
-
-    function hideOverlay(){ overlay.style.display = "none"; }
-    function showOverlay(){ overlay.style.display = "flex"; }
 
     function popText(x, y, text){
       const el = document.createElement("div");
@@ -886,7 +681,6 @@
       setTimeout(() => ex.remove(), 520);
     }
 
-    // 간단 충돌(AABB)
     function aabb(ax, ay, aw, ah, bx, by, bw, bh){
       return !(ax + aw < bx || ax > bx + bw || ay + ah < by || ay > by + bh);
     }
@@ -898,7 +692,6 @@
 
       const x = Math.random() * (gW - 36);
       const y = -70;
-
       const zig = modes[modeIdx].zigzag;
       const vx = zig ? (Math.random() < 0.5 ? -1 : 1) * (80 + Math.random()*90) : 0;
 
@@ -907,7 +700,6 @@
 
       el.style.setProperty("--x", x + "px");
       el.style.setProperty("--y", y + "px");
-      el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
 
       game.appendChild(el);
     }
@@ -925,7 +717,6 @@
 
       el.style.setProperty("--x", x + "px");
       el.style.setProperty("--y", y + "px");
-      el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
 
       game.appendChild(el);
     }
@@ -942,15 +733,20 @@
       running = false;
       if (raf) cancelAnimationFrame(raf);
       raf = null;
-
       if (hazardTimer){ clearInterval(hazardTimer); hazardTimer = null; }
       if (starTimer){ clearInterval(starTimer); starTimer = null; }
+    }
+
+    function showOverlay(){
+      overlay.style.display = "flex";
+    }
+    function hideOverlay(){
+      overlay.style.display = "none";
     }
 
     function reset(){
       stop();
       measureGame();
-
       clearObjects();
 
       scorePoints = 0;
@@ -966,6 +762,7 @@
       showTouchHint(true);
       applyJetTier();
 
+      startBtn.textContent = "시작하기";
       showOverlay();
     }
 
@@ -973,8 +770,6 @@
       reset();
       hideOverlay();
       showTouchHint(false);
-
-      startBGM();
 
       running = true;
       startAt = performance.now();
@@ -990,16 +785,14 @@
     function gameOver(){
       if (!running) return;
       stop();
-      stopBGM();
       sfxOver();
 
       const lived = (performance.now() - startAt) / 1000;
-      // 최종 점수: (별점수*10) + (생존*5)
       const final = Math.floor(scorePoints * 10 + lived * 5);
 
       if (final > best) {
         best = final;
-        localStorage.setItem("xgp_best_v2", String(best));
+        localStorage.setItem("xgp_best_v3", String(best));
         bestEl.textContent = best;
       }
 
@@ -1007,26 +800,22 @@
       void game.offsetWidth;
       game.classList.add("shake");
 
-      // 오버레이를 “포스터 화면”으로 되돌리되, 하단 버튼 텍스트만 바꿔서 재시작 느낌
-      showOverlay();
       startBtn.textContent = "다시 시작";
+      showOverlay();
     }
 
     function tick(now){
       if (!running) return;
-      const dt = Math.min(0.033, (now - lastTime) / 1000); // 프레임 급락 방어(최대 33ms)
+      const dt = Math.min(0.033, (now - lastTime) / 1000);
       lastTime = now;
 
       const lived = (now - startAt) / 1000;
       timeEl.textContent = lived.toFixed(1);
 
-      // 시간이 지날수록 조금 빨라짐
       const progress = Math.min(Math.max((lived - 10) / 110, 0), 1);
       const speedMultiplier = 1 + progress;
-
       const m = modes[modeIdx];
 
-      // hazards update
       for (let i = hazards.length - 1; i >= 0; i--){
         const h = hazards[i];
         h.y += m.hazardSpeed * speedMultiplier * dt;
@@ -1045,10 +834,10 @@
           continue;
         }
 
-        // transform 업데이트
-        h.el.style.transform = `translate3d(${h.x}px, ${h.y}px, 0)`;
+        // ✅ CSS 변수만 갱신 (별/폭탄이 확실히 보임)
+        h.el.style.setProperty("--x", h.x + "px");
+        h.el.style.setProperty("--y", h.y + "px");
 
-        // 충돌 체크
         if (aabb(px, py, pSize, pSize, h.x, h.y, h.w, h.h)){
           spawnExplosion(h.x + h.w/2, h.y + h.h/2);
           gameOver();
@@ -1056,7 +845,6 @@
         }
       }
 
-      // stars update
       for (let i = stars.length - 1; i >= 0; i--){
         const s = stars[i];
         s.y += m.starSpeed * (speedMultiplier * 1.45) * dt;
@@ -1067,18 +855,17 @@
           continue;
         }
 
-        s.el.style.transform = `translate3d(${s.x}px, ${s.y}px, 0)`;
+        s.el.style.setProperty("--x", s.x + "px");
+        s.el.style.setProperty("--y", s.y + "px");
 
         if (aabb(px, py, pSize, pSize, s.x, s.y, s.w, s.h)){
           sfxCoin();
           s.el.remove();
           stars.splice(i, 1);
 
-          // ✅ 업그레이드용 카운트는 “별 1개”
           totalStarsCollected += 1;
           recalcLevel();
 
-          // ✅ 점수는 배율 적용
           const gain = gainMultiplier(); // 1.05^level
           scorePoints += gain;
 
@@ -1086,7 +873,7 @@
             ? scorePoints.toFixed(0)
             : scorePoints.toFixed(1);
 
-          popText(px + 2, py - 10, "+" + (gain >= 10 ? gain.toFixed(1) : gain.toFixed(2)));
+          popText(px + 4, py - 10, "+" + (gain >= 10 ? gain.toFixed(1) : gain.toFixed(2)));
         }
       }
 
@@ -1136,14 +923,10 @@
     startBtn.addEventListener("click", () => {
       ensureAudioReady().then(() => { sfxStart(); start(); }).catch(() => start());
     });
-    restartBtn.addEventListener("click", () => {
-      startBtn.textContent = "시작하기";
-      reset();
-    });
+    restartBtn.addEventListener("click", () => reset());
     hardBtn.addEventListener("click", () => {
       modeIdx = (modeIdx + 1) % modes.length;
       hardBtn.textContent = "난이도: " + modes[modeIdx].name;
-      startBtn.textContent = "시작하기";
       reset();
     });
 
@@ -1155,15 +938,13 @@
     });
 
     // ===== 이미지 적용 =====
-    (function applyJetImage(){
+    (function applyImages(){
       jetSprite.style.backgroundImage = `url("${JET_RAW_URL}")`;
-      posterJet.style.backgroundImage = `url("${JET_RAW_URL}")`;
+      startBg.style.backgroundImage = `url("${START_SCREEN_URL}")`;
     })();
 
-    // 초기 세팅
+    // 초기 시작
     measureGame();
-    px = 0;
-    py = 0;
     reset();
   </script>
 </body>
