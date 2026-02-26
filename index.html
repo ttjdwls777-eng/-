@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1, user-scalable=no" />
-  <title>XGP 미니게임 (SHOP 확장 / 경고후 낙하 / 퀄리티업)</title>
+  <title>XGP 미니게임 (SHOP 모바일 최적화)</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -451,7 +451,7 @@
       opacity:.95;
     }
 
-    /* ===== Overlay / Start / SHOP ===== */
+    /* ===== Overlay / Start ===== */
     .overlay{
       position:absolute; inset:0;
       display:flex;
@@ -504,16 +504,17 @@
         linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.62));
     }
 
+    /* Start UI now slimmer; on mobile we keep bg visible */
     .startUI{
       position:absolute;
       left:0; right:0; bottom:0;
-      padding:14px 12px calc(14px + env(safe-area-inset-bottom));
+      padding:12px 12px calc(12px + env(safe-area-inset-bottom));
       display:flex;
       flex-direction:column;
       gap:10px;
       align-items:center;
-      justify-content:center;
-      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.74));
+      justify-content:flex-end;
+      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.70));
     }
 
     .pressStart{
@@ -540,17 +541,32 @@
       line-height:1.6;
       text-align:center;
       opacity:.98;
+      max-width: 560px;
     }
 
+    /* ===== SHOP modal ===== */
+    .shopModal{
+      position:absolute; inset:0;
+      z-index: 40;
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      padding:10px 10px calc(10px + env(safe-area-inset-bottom));
+      background: rgba(0,0,0,.42);
+      backdrop-filter: blur(2px);
+    }
+    .shopModal.open{ display:flex; }
+
     .shop{
-      width: calc(100% - 10px);
-      max-width: 560px;
+      width: min(560px, 100%);
       border:2px solid rgba(125,249,255,.55);
-      background: rgba(12,8,24,.56);
+      background: rgba(12,8,24,.78);
       border-radius: 14px;
       padding: 12px;
       box-shadow: var(--uiShadow);
-      backdrop-filter: blur(2px);
+      max-height: min(78vh, 620px);
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .shopRow{
@@ -654,6 +670,24 @@
       font-size: 9px;
     }
 
+    /* ===== Start footer buttons ===== */
+    .startActions{
+      width:min(560px, 100%);
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      align-items:stretch;
+      flex-wrap:wrap;
+    }
+    .startActions button{
+      flex: 1 1 160px;
+      min-width: 140px;
+    }
+    .ghost{
+      border-color: rgba(255,255,255,.22);
+      color: rgba(255,246,230,.92);
+    }
+
     .shopBtns button{ min-width: 120px; }
 
     .shopSmall{
@@ -703,6 +737,7 @@
       50%{ transform: translateY(6px); }
     }
 
+    /* ===== Mobile optimization: show more startBg, compact buttons ===== */
     @media (max-width: 600px){
       body{
         padding:0 !important;
@@ -723,9 +758,32 @@
         max-height:none;
       }
       .help{ display:none; }
-      .shopStat{ min-width: 170px; }
-      .pill{ min-width: 155px; }
-      .btnSmall{ min-width: 80px; }
+
+      .pill{ min-width: 150px; font-size:9px; padding:9px 9px; }
+      button{ padding:10px 10px; font-size:9px; border-radius:12px; }
+
+      .startUI{
+        padding:10px 10px calc(10px + env(safe-area-inset-bottom));
+        gap:8px;
+        background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.62));
+      }
+      .pressStart{ font-size:13px; }
+      .startHint{ font-size:8px; line-height:1.55; opacity:.98; }
+
+      .startActions{ gap:8px; }
+      .startActions button{ flex: 1 1 120px; min-width: 120px; }
+
+      .shop{
+        padding:10px;
+        max-height: 74vh;
+      }
+      .shopStat{ min-width: 160px; font-size:9px; padding:9px; }
+      .upgItem{ padding:9px; }
+      .upgItem .name{ font-size:9px; }
+      .upgItem .desc{ font-size:8px; }
+      .badge{ min-width: 62px; font-size:8px; padding:6px 7px; }
+      .btnSmall{ min-width: 78px; padding:9px 9px; font-size:8px; }
+      .shopBtns button{ min-width: 0; }
     }
   </style>
 </head>
@@ -764,7 +822,7 @@
           <div class="hintText">드래그!</div>
         </div>
 
-        <!-- 시작 화면 + SHOP -->
+        <!-- 시작 화면 -->
         <div class="overlay" id="overlay">
           <div class="startBg" id="startBg"></div>
           <div class="scanlines"></div>
@@ -773,14 +831,22 @@
           <div class="startUI">
             <div class="pressStart">PRESS START</div>
 
-            <div class="shop" role="group" aria-label="shop">
-              <div class="startHint">
-                레벨 업그레이드(기존 방식 유지): <b>100 STAR = 1 레벨</b> (최대 100)<br/>
-                추가 업그레이드: 점수배수 / 이동속도 / 히트박스 축소 / 별 출현률 / 폭탄 속도 감소<br/>
-                폭탄은 <b>경고 라인</b> 후에 떨어지는 패턴이 섞여서 퀄리티가 확 올라가.
-              </div>
+            <div class="startHint">
+              레벨 업그레이드(기존 방식 유지): <b>100 STAR = 1 레벨</b> (최대 100)<br/>
+              추가 업그레이드: 점수배수 / 이동속도 / 히트박스 축소 / 별 출현률 / 폭탄 속도 감소<br/>
+              폭탄은 <b>경고 라인</b> 후에 떨어지는 패턴이 섞여서 퀄리티가 확 올라가.
+            </div>
 
-              <div class="shopRow">
+            <div class="startActions">
+              <button id="openShopBtn" class="ghost">SHOP 열기</button>
+              <button id="startBtn" class="primary">시작하기</button>
+            </div>
+          </div>
+
+          <!-- SHOP 모달 (모바일: 기본 닫힘 / PC: 열어도 됨) -->
+          <div class="shopModal" id="shopModal" role="dialog" aria-modal="true" aria-label="shop modal">
+            <div class="shop" role="group" aria-label="shop">
+              <div class="shopRow" style="margin-top:0;">
                 <div class="shopStat">
                   보유 STAR: <b id="shopBank">0</b><br/>
                   구매 레벨: <b id="shopLevel">0</b>/100
@@ -870,7 +936,7 @@
                     <button id="buy10pack" class="primary">+10 패키지</button>
                     <button id="buyMax" class="primary">레벨 MAX</button>
                     <button id="resetShop" class="danger">모두 초기화</button>
-                    <button id="startBtn" class="primary">시작하기</button>
+                    <button id="closeShopBtn" class="ghost">닫기</button>
                   </div>
 
                   <div class="shopSmall">
@@ -879,7 +945,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div><!-- shopModal -->
         </div><!-- overlay -->
       </div><!-- game -->
 
@@ -907,6 +973,10 @@
     const hardBtn = document.getElementById("hardBtn");
     const touchHint = document.getElementById("touchHint");
     const startBg = document.getElementById("startBg");
+
+    const openShopBtn = document.getElementById("openShopBtn");
+    const closeShopBtn = document.getElementById("closeShopBtn");
+    const shopModal = document.getElementById("shopModal");
 
     const timeEl = document.getElementById("time");
     const scoreEl = document.getElementById("score");
@@ -991,7 +1061,7 @@
       { key:"core", cls:"", w:36, h:36, hit:0.62, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='g' cx='30%25' cy='25%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='.65'/%3E%3Cstop offset='40%25' stop-color='%235b2bbf' stop-opacity='1'/%3E%3Cstop offset='100%25' stop-color='%23210a4f' stop-opacity='1'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='48' cy='48' r='30' fill='url(%23g)' stroke='%23ffffff' stroke-opacity='.9' stroke-width='4'/%3E%3Cpath d='M28 44c10-12 18 12 28 0s18 12 28 0' fill='none' stroke='%237df9ff' stroke-opacity='.65' stroke-width='3'/%3E%3Cpath d='M30 60c12-10 14 10 26 0s16 10 26 0' fill='none' stroke='%23ffd166' stroke-opacity='.45' stroke-width='2.5'/%3E%3C/svg%3E" },
       { key:"mine", cls:"", w:40, h:40, hit:0.58, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110' viewBox='0 0 110 110'%3E%3Cdefs%3E%3CradialGradient id='m' cx='35%25' cy='30%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='.75'/%3E%3Cstop offset='40%25' stop-color='%232aa7ff'/%3E%3Cstop offset='100%25' stop-color='%230b2b66'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M55 6l7 18 16-10-6 19 19 2-14 12 16 10-19 1 6 19-16-10-7 18-7-18-16 10 6-19-19-1 16-10-14-12 19-2-6-19 16 10z' fill='%23d7f5ff' opacity='.55'/%3E%3Ccircle cx='55' cy='55' r='28' fill='url(%23m)' stroke='%23ffffff' stroke-opacity='.9' stroke-width='4'/%3E%3Cpath d='M36 60c9-9 15 9 24 0s15 9 24 0' fill='none' stroke='%23ffd166' stroke-opacity='.45' stroke-width='3'/%3E%3C/svg%3E" },
       { key:"comet", cls:"spin", w:54, h:22, hit:0.72, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='80' viewBox='0 0 180 80'%3E%3Cdefs%3E%3ClinearGradient id='c' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='0'/%3E%3Cstop offset='.35' stop-color='%23ffd166' stop-opacity='.35'/%3E%3Cstop offset='1' stop-color='%23ff6a3d'/%3E%3C/linearGradient%3E%3CradialGradient id='h' cx='55%25' cy='40%25' r='70%25'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='.55' stop-color='%23ff6a3d'/%3E%3Cstop offset='1' stop-color='%236a0f1f'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M12 40c40-24 74-26 112 0-38 26-72 24-112 0z' fill='url(%23c)'/%3E%3Ccircle cx='136' cy='40' r='22' fill='url(%23h)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='4'/%3E%3C/svg%3E" },
-      { key:"bigcore", cls:"", w:58, h:58, hit:0.62, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cdefs%3E%3CradialGradient id='b' cx='30%25' cy='25%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='.7'/%3E%3Cstop offset='40%25' stop-color='%23ff4dff'/%3E%3Cstop offset='100%25' stop-color='%23210a4f'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='70' cy='74' r='44' fill='url(%23b)' stroke='%23ffffff' stroke-opacity='.9' stroke-width='5'/%3E%3Cpath d='M36 66c12-14 22 14 34 0s22 14 34 0' fill='none' stroke='%237df9ff' stroke-opacity='.65' stroke-width='4'/%3E%3C/svg%3E" },
+      { key:"bigcore", cls:"", w:58, h:58, hit:0.62, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cdefs%3E%3CradialGradient id='b' cx='30%25' cy='25%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='.7'/%3E%3Cstop offset='40%25' stop-color='%23ff4dff'/%3E%3Cstop offset='100%25' stop-color='%23210a4f' stop-opacity='1'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='70' cy='74' r='44' fill='url(%23b)' stroke='%23ffffff' stroke-opacity='.9' stroke-width='5'/%3E%3Cpath d='M36 66c12-14 22 14 34 0s22 14 34 0' fill='none' stroke='%237df9ff' stroke-opacity='.65' stroke-width='4'/%3E%3C/svg%3E" },
       { key:"plasma", cls:"spin", w:26, h:26, hit:0.68, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='p' cx='40%25' cy='35%25' r='70%25'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='.55' stop-color='%237df9ff'/%3E%3Cstop offset='1' stop-color='%23073a5a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='48' cy='48' r='22' fill='url(%23p)' stroke='%23ffffff' stroke-opacity='.75' stroke-width='4'/%3E%3Cpath d='M30 50c6-8 12 8 18 0s12 8 18 0' fill='none' stroke='%23ffd166' stroke-opacity='.35' stroke-width='2.5'/%3E%3C/svg%3E" },
       { key:"twister", cls:"", w:34, h:34, hit:0.62, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110' viewBox='0 0 110 110'%3E%3Cdefs%3E%3CradialGradient id='t' cx='35%25' cy='30%25' r='75%25'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='.7'/%3E%3Cstop offset='.55' stop-color='%23ffd166'/%3E%3Cstop offset='1' stop-color='%235b2bbf'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='55' cy='55' r='26' fill='url(%23t)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='4'/%3E%3Cpath d='M30 55c8-10 14 10 22 0s14 10 22 0' fill='none' stroke='%237df9ff' stroke-opacity='.55' stroke-width='3'/%3E%3C/svg%3E" },
       { key:"splitter", cls:"", w:42, h:42, hit:0.60, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cdefs%3E%3CradialGradient id='s' cx='35%25' cy='30%25' r='75%25'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='.75'/%3E%3Cstop offset='.55' stop-color='%23ff4dff'/%3E%3Cstop offset='1' stop-color='%230b2b66'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='60' cy='60' r='30' fill='url(%23s)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='4'/%3E%3Cpath d='M60 30v60' stroke='%23ffd166' stroke-opacity='.75' stroke-width='5'/%3E%3Cpath d='M38 60h44' stroke='%237df9ff' stroke-opacity='.55' stroke-width='4'/%3E%3C/svg%3E" },
@@ -1091,10 +1161,7 @@
     const LS_BANK = "xgp_bank_v2";
     const LS_BEST = "xgp_best_v7";
 
-    // existing "레벨" 업그레이드 저장
     const LS_LV = "xgp_upgrade_level_v2"; // 0~100
-
-    // new upgrade stats
     const LS_MUL  = "xgp_upg_mul_v1";     // 0~50
     const LS_MOVE = "xgp_upg_move_v1";    // 0~50
     const LS_HIT  = "xgp_upg_hit_v1";     // 0~60
@@ -1121,7 +1188,6 @@
 
     let bank = loadBank();
 
-    // upgrades state
     let upgLevel = clamp(loadInt(LS_LV, 0), 0, 100);
     let upgMul   = clamp(loadInt(LS_MUL, 0), 0, 50);
     let upgMove  = clamp(loadInt(LS_MOVE,0), 0, 50);
@@ -1129,33 +1195,19 @@
     let upgStar  = clamp(loadInt(LS_STAR,0), 0, 50);
     let upgSlow  = clamp(loadInt(LS_SLOW,0), 0, 50);
 
-    // "level" used in gameplay
     level = upgLevel;
 
     let best = Number(localStorage.getItem(LS_BEST) || 0);
     bestEl.textContent = best;
 
-    // derived multipliers
-    function scoreBonusMultiplier(){
-      // 점수배수: 업그레이드 1당 +3% -> 최대 50 -> x2.5
-      return 1 + upgMul * 0.03;
-    }
-    function moveSpeedMultiplier(){
-      // 이동속도: +2% each -> max 50 -> x2.0
-      return 1 + upgMove * 0.02;
-    }
+    function scoreBonusMultiplier(){ return 1 + upgMul * 0.03; }
+    function moveSpeedMultiplier(){ return 1 + upgMove * 0.02; }
     function playerHitScale(){
-      // 히트박스 축소: -0.6% each -> max 60 -> -36%
-      // clamp lower bound to avoid too tiny
       const scale = BASE_PLAYER_HIT * (1 - upgHit * 0.006);
       return clamp(scale, 0.42, 0.95);
     }
-    function starRateMultiplier(){
-      // 별 출현률: +2.5% each -> max 50 -> x2.25
-      return 1 + upgStar * 0.025;
-    }
+    function starRateMultiplier(){ return 1 + upgStar * 0.025; }
     function hazardSpeedMultiplier(){
-      // 폭탄 속도 감소: -1.3% each -> max 50 -> -65%
       const mul = 1 - upgSlow * 0.013;
       return clamp(mul, 0.35, 1.0);
     }
@@ -1171,6 +1223,7 @@
     ];
     let lastTier = -1;
 
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
     function currentTier(){
       const t = Math.floor(level / 10);
       return clamp(t, 0, JET_TIERS.length - 1);
@@ -1179,7 +1232,6 @@
       const t = Math.floor(level / 10);
       return clamp(t, 0, JET_SKINS.length - 1);
     }
-
     function applyJetTier(force=false){
       const t = currentTier();
       if (!force && t === lastTier) return;
@@ -1205,7 +1257,7 @@
     // ===== Objects arrays =====
     const hazards = [];
     const stars = [];
-    const warnings = []; // telegraph warnings
+    const warnings = [];
 
     let hazardTimer = null;
     let starTimer = null;
@@ -1217,7 +1269,6 @@
       gW = r.width;
       gH = r.height;
     }
-    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
     function setPlayerX(x){
       px = clamp(Math.round(x), 0, Math.round(gW - pSize));
@@ -1283,7 +1334,6 @@
 
     // ===== Gameplay multipliers =====
     function gainMultiplier(){
-      // 레벨 배수 * 점수배수 업그레이드
       return Math.pow(1.05, level) * scoreBonusMultiplier();
     }
 
@@ -1348,8 +1398,6 @@
         splitAt,
         didSplit:false,
         phase: Math.random()*Math.PI*2,
-
-        // telegraph dropped ones get a slight speed boost to feel impactful
         tele: isTelegraphSpawn ? 1.12 : 1.0
       };
 
@@ -1404,15 +1452,14 @@
       game.appendChild(el);
     }
 
-    // ===== Telegraph system (warning then drop) =====
+    // ===== Telegraph system =====
     function spawnTelegraph(){
       if (!running) return;
 
       const m = modes[modeIdx];
-      const chance = m.telegraphChance + Math.min(0.22, currentTier()*0.04); // 티어 올라갈수록 자주
+      const chance = m.telegraphChance + Math.min(0.22, currentTier()*0.04);
       if (Math.random() > chance) return;
 
-      // choose X: either random or near player (hard)
       let x = Math.random() * (gW - 6);
       if (m.name === "HARD" && Math.random() < 0.55){
         x = (px + pSize/2) + (Math.random()*180 - 90);
@@ -1426,7 +1473,7 @@
       const circle = document.createElement("div");
       circle.className = "warnCircle";
       circle.style.left = Math.round(x) + "px";
-      circle.style.top  = Math.round(gH * 0.30) + "px"; // impact vibe
+      circle.style.top  = Math.round(gH * 0.30) + "px";
 
       game.appendChild(line);
       game.appendChild(circle);
@@ -1436,8 +1483,7 @@
         circle,
         x,
         t: 0,
-        duration: (m.name === "HARD" ? 720 : 860) - currentTier()*60, // hard faster
-        // when ends -> drop 1~2 hazards
+        duration: (m.name === "HARD" ? 720 : 860) - currentTier()*60,
         burst: (m.name === "HARD" && Math.random() < 0.35) ? 2 : 1
       };
       warnings.push(warn);
@@ -1466,6 +1512,27 @@
 
     function showOverlay(){ overlay.style.display = "flex"; }
     function hideOverlay(){ overlay.style.display = "none"; }
+
+    // ===== SHOP modal control =====
+    function openShop(){
+      shopModal.classList.add("open");
+      // 모달 열릴 때 스크롤 맨 위로
+      const shopBox = shopModal.querySelector(".shop");
+      if (shopBox) shopBox.scrollTop = 0;
+    }
+    function closeShop(){
+      shopModal.classList.remove("open");
+    }
+
+    // 모달 배경 클릭하면 닫기 (패널 클릭은 무시)
+    shopModal.addEventListener("click", (e)=>{
+      if (e.target === shopModal) closeShop();
+    });
+
+    // ESC로 닫기
+    window.addEventListener("keydown", (e)=>{
+      if (e.key === "Escape") closeShop();
+    });
 
     // ===== HUD / SHOP sync =====
     function fmt2(n){ return (Math.round(n*100)/100).toFixed(2); }
@@ -1505,15 +1572,16 @@
       positionPlayer();
       showTouchHint(true);
 
-      // keep upgrades, reapply visuals
       level = upgLevel;
       lastTier = -1;
       applyJetTier(true);
 
+      closeShop();
       showOverlay();
     }
 
     function startGame(){
+      closeShop();
       hideOverlay();
       showTouchHint(false);
 
@@ -1523,18 +1591,14 @@
 
       const m = modes[modeIdx];
 
-      // starRate upgrade reduces interval
       const starInterval = Math.max(380, Math.round(m.starRate / starRateMultiplier()));
       const hazardInterval = m.hazardRate;
 
       hazardTimer = setInterval(()=> {
-        // regular hazards still spawn
         spawnHazardAt(Math.random() * (gW - 60));
       }, hazardInterval);
 
       starTimer = setInterval(spawnStar, starInterval);
-
-      // telegraph spawner (quality)
       warnTimer = setInterval(spawnTelegraph, 220);
 
       raf = requestAnimationFrame(tick);
@@ -1558,6 +1622,7 @@
       void game.offsetWidth;
       game.classList.add("shake");
 
+      closeShop();
       showOverlay();
       showTouchHint(true);
     }
@@ -1597,13 +1662,11 @@
       const lived = (now - startAt) / 1000;
       timeEl.textContent = lived.toFixed(1);
 
-      // difficulty ramp
       const progress = Math.min(Math.max((lived - 10) / 110, 0), 1);
       const speedMultiplier = 1 + progress;
 
       const m = modes[modeIdx];
 
-      // particles rate depends on tier
       const conf = JET_TIERS[currentTier()];
       particleAcc += dt * 1000;
       while (particleAcc >= conf.particleRate){
@@ -1611,17 +1674,13 @@
         spawnJetParticle();
       }
 
-      // ===== update warnings (telegraphs) =====
       for (let i = warnings.length - 1; i >= 0; i--){
         const w = warnings[i];
         w.t += dt * 1000;
 
-        // at end -> drop hazards and remove
         if (w.t >= w.duration){
-          // spawn 1~2 hazards exactly at warning x
           for (let k=0;k<w.burst;k++){
             const offset = (w.burst === 2) ? (k===0 ? -18 : 18) : 0;
-            // for telegraph, bias to impactful type
             const teleType = (Math.random() < 0.45) ? HAZARD_TYPES[3] : (Math.random() < 0.5 ? HAZARD_TYPES[2] : null);
             spawnHazardAt(w.x + offset, teleType, true);
           }
@@ -1631,16 +1690,12 @@
         }
       }
 
-      // ===== hazards =====
-      const slowMul = hazardSpeedMultiplier(); // < 1 means slower hazards
+      const slowMul = hazardSpeedMultiplier();
       for (let i = hazards.length - 1; i >= 0; i--){
         const h = hazards[i];
-
-        // base speed * type * ramp * slow upgrade * tele boost
         const base = m.hazardSpeed * h.speedMul * speedMultiplier * slowMul * h.tele;
         h.y += base * dt;
 
-        // movement
         if (m.zigzag || h.key === "comet" || h.key === "plasma" || h.key === "mini"){
           h.x += h.vx * dt * (0.85 + progress*0.75) * (1 + currentTier()*0.04);
         }
@@ -1660,7 +1715,6 @@
         if (h.x <= minX){ h.x = minX; h.vx = Math.abs(h.vx); }
         if (h.x >= maxX){ h.x = maxX; h.vx = -Math.abs(h.vx); }
 
-        // splitter
         if (h.key === "splitter" && !h.didSplit && h.splitAt != null && h.y >= h.splitAt){
           h.didSplit = true;
           spawnTierRing();
@@ -1677,7 +1731,6 @@
         h.el.style.setProperty("--x", h.x + "px");
         h.el.style.setProperty("--y", h.y + "px");
 
-        // collision with upgraded hitbox scale
         if (aabbScaled(px, py, pSize, pSize, playerHitScale(), h.x, h.y, h.w, h.h, h.hitScale)){
           spawnExplosion(h.x + h.w/2, h.y + h.h/2);
           gameOver();
@@ -1685,7 +1738,6 @@
         }
       }
 
-      // ===== stars =====
       for (let i = stars.length - 1; i >= 0; i--){
         const s = stars[i];
         s.y += m.starSpeed * (speedMultiplier * 1.45) * dt;
@@ -1832,14 +1884,12 @@
     buyStarRateBtn.addEventListener("click", ()=> buyStat("star"));
     buyHazSlowBtn.addEventListener("click", ()=> buyStat("slow"));
 
-    // +10 pack: 한 번에 10개(가능한 만큼) 자동 분배 (레벨 2, 점수 2, 이동 2, 히트 2, 별 1, 느려짐 1)
     buy10packBtn.addEventListener("click", ()=>{
       const need = COST * 10;
       if (!canSpend(need)){
         popText(px + pSize/2 - 32, py - 20, "NEED 1000");
         return;
       }
-      // distribute with caps
       const plan = [
         ["lv", 2, ()=> upgLevel < 100],
         ["mul",2, ()=> upgMul < 50],
@@ -1863,7 +1913,6 @@
         }
       }
 
-      // save
       saveInt(LS_LV, upgLevel);
       saveInt(LS_MUL, upgMul);
       saveInt(LS_MOVE, upgMove);
@@ -1937,6 +1986,9 @@
       resetRun();
     });
 
+    openShopBtn.addEventListener("click", ()=> openShop());
+    closeShopBtn.addEventListener("click", ()=> closeShop());
+
     window.addEventListener("resize", () => {
       measureGame();
       px = clamp(px, 0, gW - pSize);
@@ -1971,6 +2023,9 @@
       syncHud();
       showTouchHint(true);
       showOverlay();
+
+      // 모바일은 기본으로 SHOP 닫힘(배경 최대 노출)
+      closeShop();
     })();
   </script>
 </body>
