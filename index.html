@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1, user-scalable=no" />
-  <title>XGP 미니게임 (SHOP 모바일 최적화)</title>
+  <title>XGP 미니게임 (SHOP 모바일 탭/버튼 최적화)</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -352,7 +352,7 @@
       100%{ opacity:0; transform: translate(-50%,-50%) scale(1.55); }
     }
 
-    /* ===== Warning telegraph (laser line + impact circle) ===== */
+    /* ===== Warning telegraph ===== */
     .warnLine{
       z-index:2;
       left:0; top:0;
@@ -442,6 +442,10 @@
     button:active{ transform: translateY(1px); }
     .primary{ border-color: var(--accent); }
     .danger{ border-color: var(--danger); color: #ffecec; }
+    .ghost{
+      border-color: rgba(255,255,255,.22);
+      color: rgba(255,246,230,.92);
+    }
 
     .help{
       margin-top:10px;
@@ -504,7 +508,6 @@
         linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.62));
     }
 
-    /* Start UI now slimmer; on mobile we keep bg visible */
     .startUI{
       position:absolute;
       left:0; right:0; bottom:0;
@@ -542,6 +545,19 @@
       text-align:center;
       opacity:.98;
       max-width: 560px;
+    }
+
+    .startActions{
+      width:min(560px, 100%);
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      align-items:stretch;
+      flex-wrap:wrap;
+    }
+    .startActions button{
+      flex: 1 1 160px;
+      min-width: 140px;
     }
 
     /* ===== SHOP modal ===== */
@@ -610,6 +626,33 @@
       text-align: center;
     }
 
+    /* ===== Tabs ===== */
+    .shopTabs{
+      display:flex;
+      gap:8px;
+      margin: 8px 0 10px;
+    }
+    .tabBtn{
+      flex:1;
+      padding:10px 10px;
+      font-size:9px;
+      border-radius:12px;
+      border:2px solid rgba(255,180,90,.45);
+      background: rgba(20,12,40,.35);
+      color: var(--muted);
+      box-shadow: inset 0 0 18px rgba(255,160,60,.06);
+      cursor:pointer;
+      user-select:none;
+    }
+    .tabBtn.active{
+      border-color: rgba(125,249,255,.7);
+      color: #eaffff;
+      background: rgba(10,8,20,.45);
+      box-shadow: inset 0 0 18px rgba(125,249,255,.10);
+    }
+    .tabPage{ display:none; }
+    .tabPage.active{ display:block; }
+
     .upgList{
       display:grid;
       grid-template-columns: 1fr;
@@ -670,24 +713,15 @@
       font-size: 9px;
     }
 
-    /* ===== Start footer buttons ===== */
-    .startActions{
-      width:min(560px, 100%);
+    /* Shop bottom buttons */
+    .shopBtns{
+      width:100%;
       display:flex;
       gap:10px;
-      justify-content:center;
-      align-items:stretch;
       flex-wrap:wrap;
+      justify-content:center;
+      margin-top:10px;
     }
-    .startActions button{
-      flex: 1 1 160px;
-      min-width: 140px;
-    }
-    .ghost{
-      border-color: rgba(255,255,255,.22);
-      color: rgba(255,246,230,.92);
-    }
-
     .shopBtns button{ min-width: 120px; }
 
     .shopSmall{
@@ -737,7 +771,7 @@
       50%{ transform: translateY(6px); }
     }
 
-    /* ===== Mobile optimization: show more startBg, compact buttons ===== */
+    /* ===== Mobile optimization ===== */
     @media (max-width: 600px){
       body{
         padding:0 !important;
@@ -783,7 +817,21 @@
       .upgItem .desc{ font-size:8px; }
       .badge{ min-width: 62px; font-size:8px; padding:6px 7px; }
       .btnSmall{ min-width: 78px; padding:9px 9px; font-size:8px; }
-      .shopBtns button{ min-width: 0; }
+
+      /* 핵심: 모바일에서 하단 버튼 2열 그리드 */
+      .shopBtns{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap:8px;
+        justify-content:stretch;
+      }
+      .shopBtns button{
+        min-width: 0;
+        width:100%;
+      }
+
+      .shopTabs{ gap:6px; }
+      .tabBtn{ padding:9px 8px; font-size:8px; }
     }
   </style>
 </head>
@@ -832,9 +880,9 @@
             <div class="pressStart">PRESS START</div>
 
             <div class="startHint">
-              레벨 업그레이드: <b>100 STAR = 1 레벨</b> (최대 100)<br/>
-              장비 업그레이드: 점수배수 / 이동속도 / 히트박스 축소 / 별 출현률 / 폭탄 속도 감소<br/>
-              폭탄은 <b>경고 라인</b>
+              레벨 업그레이드(기존 방식 유지): <b>100 STAR = 1 레벨</b> (최대 100)<br/>
+              추가 업그레이드: 점수배수 / 이동속도 / 히트박스 축소 / 별 출현률 / 폭탄 속도 감소<br/>
+              폭탄은 <b>경고 라인</b> 후에 떨어지는 패턴이 섞여서 퀄리티가 확 올라가.
             </div>
 
             <div class="startActions">
@@ -843,7 +891,7 @@
             </div>
           </div>
 
-          <!-- SHOP 모달 (모바일: 기본 닫힘 / PC: 열어도 됨) -->
+          <!-- SHOP 모달 -->
           <div class="shopModal" id="shopModal" role="dialog" aria-modal="true" aria-label="shop modal">
             <div class="shop" role="group" aria-label="shop">
               <div class="shopRow" style="margin-top:0;">
@@ -864,83 +912,97 @@
                 <div class="shopPanel">
                   <div class="shopTitle">UPGRADE SHOP (각 +1 = 100 STAR)</div>
 
-                  <div class="upgList">
-                    <div class="upgItem">
-                      <div class="left">
-                        <div class="name">레벨 업그레이드</div>
-                        <div class="desc">기본 배수(1.05^레벨) 상승 + 10단위마다 스킨 진화</div>
-                      </div>
-                      <div class="right">
-                        <div class="badge"><span id="lvNow">0</span>/100</div>
-                        <button class="btnSmall primary" id="buyLv">+1</button>
-                      </div>
-                    </div>
+                  <!-- Tabs -->
+                  <div class="shopTabs" role="tablist" aria-label="shop tabs">
+                    <button class="tabBtn active" id="tabBasic" role="tab" aria-selected="true">기본</button>
+                    <button class="tabBtn" id="tabExtra" role="tab" aria-selected="false">추가</button>
+                  </div>
 
-                    <div class="upgItem">
-                      <div class="left">
-                        <div class="name">점수 배수</div>
-                        <div class="desc">별 획득 점수 추가 배수 (업그레이드 1당 +3%)</div>
+                  <!-- Page: Basic -->
+                  <div class="tabPage active" id="pageBasic" role="tabpanel">
+                    <div class="upgList">
+                      <div class="upgItem">
+                        <div class="left">
+                          <div class="name">레벨 업그레이드</div>
+                          <div class="desc">기본 배수(1.05^레벨) 상승 + 10단위마다 스킨 진화</div>
+                        </div>
+                        <div class="right">
+                          <div class="badge"><span id="lvNow">0</span>/100</div>
+                          <button class="btnSmall primary" id="buyLv">+1</button>
+                        </div>
                       </div>
-                      <div class="right">
-                        <div class="badge"><span id="mulNow">0</span>/50</div>
-                        <button class="btnSmall primary" id="buyMul">+1</button>
-                      </div>
-                    </div>
 
-                    <div class="upgItem">
-                      <div class="left">
-                        <div class="name">이동 속도</div>
-                        <div class="desc">좌우 이동 속도 증가 (업그레이드 1당 +2%)</div>
+                      <div class="upgItem">
+                        <div class="left">
+                          <div class="name">점수 배수</div>
+                          <div class="desc">별 획득 점수 추가 배수 (업그레이드 1당 +3%)</div>
+                        </div>
+                        <div class="right">
+                          <div class="badge"><span id="mulNow">0</span>/50</div>
+                          <button class="btnSmall primary" id="buyMul">+1</button>
+                        </div>
                       </div>
-                      <div class="right">
-                        <div class="badge"><span id="moveNow">0</span>/50</div>
-                        <button class="btnSmall primary" id="buyMove">+1</button>
-                      </div>
-                    </div>
 
-                    <div class="upgItem">
-                      <div class="left">
-                        <div class="name">히트박스 축소</div>
-                        <div class="desc">충돌 판정 축소 (업그레이드 1당 -0.6%)</div>
+                      <div class="upgItem">
+                        <div class="left">
+                          <div class="name">이동 속도</div>
+                          <div class="desc">좌우 이동 속도 증가 (업그레이드 1당 +2%)</div>
+                        </div>
+                        <div class="right">
+                          <div class="badge"><span id="moveNow">0</span>/50</div>
+                          <button class="btnSmall primary" id="buyMove">+1</button>
+                        </div>
                       </div>
-                      <div class="right">
-                        <div class="badge"><span id="hitNow">0</span>/60</div>
-                        <button class="btnSmall primary" id="buyHit">+1</button>
-                      </div>
-                    </div>
 
-                    <div class="upgItem">
-                      <div class="left">
-                        <div class="name">별 출현률</div>
-                        <div class="desc">별 더 자주 등장 (업그레이드 1당 +2.5%)</div>
-                      </div>
-                      <div class="right">
-                        <div class="badge"><span id="starNow">0</span>/50</div>
-                        <button class="btnSmall primary" id="buyStarRate">+1</button>
-                      </div>
-                    </div>
-
-                    <div class="upgItem">
-                      <div class="left">
-                        <div class="name">폭탄 속도 감소</div>
-                        <div class="desc">폭탄 낙하 속도 감소 (업그레이드 1당 -1.3%)</div>
-                      </div>
-                      <div class="right">
-                        <div class="badge"><span id="slowNow">0</span>/50</div>
-                        <button class="btnSmall primary" id="buyHazSlow">+1</button>
+                      <div class="upgItem">
+                        <div class="left">
+                          <div class="name">히트박스 축소</div>
+                          <div class="desc">충돌 판정 축소 (업그레이드 1당 -0.6%)</div>
+                        </div>
+                        <div class="right">
+                          <div class="badge"><span id="hitNow">0</span>/60</div>
+                          <button class="btnSmall primary" id="buyHit">+1</button>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div class="shopRow shopBtns" style="margin-top:10px;">
-                    <button id="buy10pack" class="primary">+10 패키지</button>
-                    <button id="buyMax" class="primary">레벨 MAX</button>
-                    <button id="resetShop" class="danger">모두 초기화</button>
-                    <button id="closeShopBtn" class="ghost">닫기</button>
-                  </div>
+                  <!-- Page: Extra -->
+                  <div class="tabPage" id="pageExtra" role="tabpanel">
+                    <div class="upgList">
+                      <div class="upgItem">
+                        <div class="left">
+                          <div class="name">별 출현률</div>
+                          <div class="desc">별 더 자주 등장 (업그레이드 1당 +2.5%)</div>
+                        </div>
+                        <div class="right">
+                          <div class="badge"><span id="starNow">0</span>/50</div>
+                          <button class="btnSmall primary" id="buyStarRate">+1</button>
+                        </div>
+                      </div>
 
-                  <div class="shopSmall">
-                    팁: HARD에서 경고 후 낙하(텔레그래프) 패턴이 더 자주 나옴. 스플리터/시커 등 특수 폭탄도 강화.
+                      <div class="upgItem">
+                        <div class="left">
+                          <div class="name">폭탄 속도 감소</div>
+                          <div class="desc">폭탄 낙하 속도 감소 (업그레이드 1당 -1.3%)</div>
+                        </div>
+                        <div class="right">
+                          <div class="badge"><span id="slowNow">0</span>/50</div>
+                          <button class="btnSmall primary" id="buyHazSlow">+1</button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="shopRow shopBtns">
+                      <button id="buy10pack" class="primary">+10 패키지</button>
+                      <button id="buyMax" class="primary">레벨 MAX</button>
+                      <button id="resetShop" class="danger">모두 초기화</button>
+                      <button id="closeShopBtn" class="ghost">닫기</button>
+                    </div>
+
+                    <div class="shopSmall">
+                      팁: HARD에서 경고 후 낙하(텔레그래프) 패턴이 더 자주 나옴. 스플리터/시커 등 특수 폭탄도 강화.
+                    </div>
                   </div>
                 </div>
               </div>
@@ -977,6 +1039,12 @@
     const openShopBtn = document.getElementById("openShopBtn");
     const closeShopBtn = document.getElementById("closeShopBtn");
     const shopModal = document.getElementById("shopModal");
+
+    // Tabs
+    const tabBasic = document.getElementById("tabBasic");
+    const tabExtra = document.getElementById("tabExtra");
+    const pageBasic = document.getElementById("pageBasic");
+    const pageExtra = document.getElementById("pageExtra");
 
     const timeEl = document.getElementById("time");
     const scoreEl = document.getElementById("score");
@@ -1068,7 +1136,7 @@
       { key:"seeker", cls:"spin", w:32, h:32, hit:0.64, svg:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cdefs%3E%3CradialGradient id='q' cx='35%25' cy='30%25' r='75%25'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='.75'/%3E%3Cstop offset='.55' stop-color='%2367ff6d'/%3E%3Cstop offset='1' stop-color='%23073a5a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='48' cy='48' r='24' fill='url(%23q)' stroke='%23ffffff' stroke-opacity='.85' stroke-width='4'/%3E%3Cpath d='M48 20l6 10-6 4-6-4z' fill='%23ffffff' opacity='.55'/%3E%3Cpath d='M30 58c10-8 12 8 18 0s12 8 18 0' fill='none' stroke='%23ffd166' stroke-opacity='.45' stroke-width='3'/%3E%3C/svg%3E" },
     ];
 
-    // ===== Collision base (will be modified by upgrades) =====
+    // ===== Collision base =====
     const STAR_HIT_SCALE   = 0.85;
     const BASE_PLAYER_HIT  = 0.82;
 
@@ -1161,12 +1229,12 @@
     const LS_BANK = "xgp_bank_v2";
     const LS_BEST = "xgp_best_v7";
 
-    const LS_LV = "xgp_upgrade_level_v2"; // 0~100
-    const LS_MUL  = "xgp_upg_mul_v1";     // 0~50
-    const LS_MOVE = "xgp_upg_move_v1";    // 0~50
-    const LS_HIT  = "xgp_upg_hit_v1";     // 0~60
-    const LS_STAR = "xgp_upg_star_v1";    // 0~50
-    const LS_SLOW = "xgp_upg_slow_v1";    // 0~50
+    const LS_LV = "xgp_upgrade_level_v2";
+    const LS_MUL  = "xgp_upg_mul_v1";
+    const LS_MOVE = "xgp_upg_move_v1";
+    const LS_HIT  = "xgp_upg_hit_v1";
+    const LS_STAR = "xgp_upg_star_v1";
+    const LS_SLOW = "xgp_upg_slow_v1";
 
     function loadInt(key, def=0){
       const v = localStorage.getItem(key);
@@ -1185,6 +1253,8 @@
       return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 10000;
     }
     function saveBank(n){ localStorage.setItem(LS_BANK, String(Math.max(0, Math.floor(n)))); }
+
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
     let bank = loadBank();
 
@@ -1223,7 +1293,6 @@
     ];
     let lastTier = -1;
 
-    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
     function currentTier(){
       const t = Math.floor(level / 10);
       return clamp(t, 0, JET_TIERS.length - 1);
@@ -1232,6 +1301,7 @@
       const t = Math.floor(level / 10);
       return clamp(t, 0, JET_SKINS.length - 1);
     }
+
     function applyJetTier(force=false){
       const t = currentTier();
       if (!force && t === lastTier) return;
@@ -1332,7 +1402,6 @@
       return !(aX + aW < bX || aX > bX + bW || aY + aH < bY || aY > bY + bH);
     }
 
-    // ===== Gameplay multipliers =====
     function gainMultiplier(){
       return Math.pow(1.05, level) * scoreBonusMultiplier();
     }
@@ -1408,7 +1477,7 @@
     }
 
     function spawnMini(x, y, dir){
-      const type = HAZARD_TYPES[4]; // plasma mini
+      const type = HAZARD_TYPES[4];
       const el = document.createElement("div");
       el.className = "hazard spin";
       el.style.width = type.w + "px";
@@ -1452,7 +1521,6 @@
       game.appendChild(el);
     }
 
-    // ===== Telegraph system =====
     function spawnTelegraph(){
       if (!running) return;
 
@@ -1516,27 +1584,35 @@
     // ===== SHOP modal control =====
     function openShop(){
       shopModal.classList.add("open");
-      // 모달 열릴 때 스크롤 맨 위로
+      // 샵 열면 기본 탭부터
+      setTab("basic");
       const shopBox = shopModal.querySelector(".shop");
       if (shopBox) shopBox.scrollTop = 0;
     }
-    function closeShop(){
-      shopModal.classList.remove("open");
-    }
+    function closeShop(){ shopModal.classList.remove("open"); }
 
-    // 모달 배경 클릭하면 닫기 (패널 클릭은 무시)
     shopModal.addEventListener("click", (e)=>{
       if (e.target === shopModal) closeShop();
     });
-
-    // ESC로 닫기
     window.addEventListener("keydown", (e)=>{
       if (e.key === "Escape") closeShop();
     });
 
+    // ===== Tabs logic =====
+    function setTab(which){
+      const basic = which === "basic";
+      tabBasic.classList.toggle("active", basic);
+      tabExtra.classList.toggle("active", !basic);
+      tabBasic.setAttribute("aria-selected", basic ? "true" : "false");
+      tabExtra.setAttribute("aria-selected", basic ? "false" : "true");
+      pageBasic.classList.toggle("active", basic);
+      pageExtra.classList.toggle("active", !basic);
+    }
+    tabBasic.addEventListener("click", ()=> setTab("basic"));
+    tabExtra.addEventListener("click", ()=> setTab("extra"));
+
     // ===== HUD / SHOP sync =====
     function fmt2(n){ return (Math.round(n*100)/100).toFixed(2); }
-
     function syncHud(){
       levelEl.textContent = String(level);
       bankEl.textContent = String(bank);
@@ -1590,7 +1666,6 @@
       lastTime = startAt;
 
       const m = modes[modeIdx];
-
       const starInterval = Math.max(380, Math.round(m.starRate / starRateMultiplier()));
       const hazardInterval = m.hazardRate;
 
@@ -1677,7 +1752,6 @@
       for (let i = warnings.length - 1; i >= 0; i--){
         const w = warnings[i];
         w.t += dt * 1000;
-
         if (w.t >= w.duration){
           for (let k=0;k<w.burst;k++){
             const offset = (w.burst === 2) ? (k===0 ? -18 : 18) : 0;
@@ -1812,7 +1886,6 @@
 
     // ===== Shop buy helpers =====
     const COST = 100;
-
     function canSpend(n){ return bank >= n; }
     function spend(n){ bank -= n; saveBank(bank); }
 
@@ -2023,9 +2096,8 @@
       syncHud();
       showTouchHint(true);
       showOverlay();
-
-      // 모바일은 기본으로 SHOP 닫힘(배경 최대 노출)
       closeShop();
+      setTab("basic");
     })();
   </script>
 </body>
