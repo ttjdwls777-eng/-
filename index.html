@@ -728,7 +728,7 @@
     }
 
     function recalcLevel(){
-      const newLevel = Math.min(100, Math.floor(totalStarsCollected / 100));
+      const newLevel = Math.min(100, Math.floor(totalStarsCollected / 10));
       if (newLevel !== level){
         level = newLevel;
         levelEl.textContent = String(level);
