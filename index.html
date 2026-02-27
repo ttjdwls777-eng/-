@@ -584,14 +584,14 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    /* ✅ 상단 고정 헤더 */
+    /* ✅ 상단 고정 헤더 (닫기 버튼 제거 / 제목만) */
     .shopHeader{
       position: sticky;
       top: 0;
       z-index: 5;
       display:flex;
       align-items:center;
-      justify-content:space-between;
+      justify-content:center;
       gap:10px;
       padding: 10px 10px;
       background: linear-gradient(180deg, rgba(12,8,24,.98), rgba(12,8,24,.78));
@@ -606,12 +606,8 @@
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-    }
-    .shopHeaderClose{
-      flex:0 0 auto;
-      min-width: 92px;
-      padding: 10px 10px;
-      font-size: 9px;
+      text-align:center;
+      width:100%;
     }
 
     .shopInner{
@@ -756,13 +752,17 @@
     }
     .shopBtns button{ min-width: 120px; }
 
-    .shopSmall{
-      font-size: 8px;
-      color: rgba(255,217,166,.92);
-      line-height: 1.55;
-      text-align:center;
-      margin-top: 6px;
-      opacity: .98;
+    /* ✅ 팁 영역 제거하고 닫기 버튼 자리로 사용 */
+    .shopFooterClose{
+      margin-top: 10px;
+      width:100%;
+      display:flex;
+      justify-content:center;
+      padding-bottom: calc(6px + env(safe-area-inset-bottom));
+    }
+    .shopFooterClose button{
+      width: 100%;
+      max-width: 520px;
     }
 
     .pop{
@@ -849,8 +849,6 @@
 
       .shopTabs{ gap:6px; }
       .tabBtn{ padding:9px 8px; font-size:8px; }
-
-      .shopHeaderClose{ min-width: 84px; }
     }
   </style>
 </head>
@@ -898,10 +896,10 @@
           <div class="startUI">
             <div class="pressStart">PRESS START</div>
 
+            <!-- ✅ 레벨업그레이드 관련(노란글씨) 팁 라인 제거 -->
             <div class="startHint">
-              레벨 업그레이드): <b>100 STAR = 1 레벨</b> (최대 100)<br/>
               추가 업그레이드: 점수배수 / 이동속도 / 히트박스 축소 / 별 출현률 / 폭탄 속도 감소<br/>
-              폭탄은 <b>경고 라인</b>
+              폭탄은 경고 라인 후에 떨어지는 패턴이 섞여서 퀄리티가 확 올라가.
             </div>
 
             <div class="startActions">
@@ -913,10 +911,9 @@
           <!-- SHOP 모달 -->
           <div class="shopModal" id="shopModal" role="dialog" aria-modal="true" aria-label="shop modal">
             <div class="shop" role="group" aria-label="shop">
-              <!-- ✅ Sticky Header (닫기 고정) -->
+              <!-- ✅ Sticky Header (제목만) -->
               <div class="shopHeader">
                 <div class="shopHeaderTitle">UPGRADE SHOP</div>
-                <button id="closeShopBtn" class="ghost shopHeaderClose">닫기</button>
               </div>
 
               <div class="shopInner">
@@ -992,18 +989,18 @@
                         </div>
                       </div>
 
-                      <!-- 스탯 탭 하단 버튼(기존 유지하고 여기에 배치) -->
                       <div class="shopRow shopBtns">
                         <button id="buyMax" class="primary">레벨 MAX</button>
                         <button id="resetShop" class="danger">모두 초기화</button>
                       </div>
 
-                      <div class="shopSmall">
-                        팁: HARD에서 경고 후 낙하(텔레그래프) 패턴이 더 자주 나옴. 스플리터/시커 등 특수 폭탄도 강화.
+                      <!-- ✅ 팁 삭제 → 닫기 버튼 배치 -->
+                      <div class="shopFooterClose">
+                        <button id="closeShopBtn" class="ghost">닫기</button>
                       </div>
                     </div>
 
-                    <!-- Page: Utility (업그레이드 2개 + 패키지 버튼만) -->
+                    <!-- Page: Utility -->
                     <div class="tabPage" id="pageExtra" role="tabpanel">
                       <div class="upgList">
                         <div class="upgItem">
@@ -1033,8 +1030,9 @@
                         <button id="buy10pack" class="primary">+10 패키지</button>
                       </div>
 
-                      <div class="shopSmall">
-                        유틸 팁: 초반에는 별 출현률을 조금 올리면 성장 속도가 안정적!
+                      <!-- ✅ 팁 삭제 → 닫기 버튼 배치 -->
+                      <div class="shopFooterClose">
+                        <button id="closeShopBtn2" class="ghost">닫기</button>
                       </div>
                     </div>
                   </div><!-- shopPanel -->
@@ -1072,6 +1070,7 @@
 
     const openShopBtn = document.getElementById("openShopBtn");
     const closeShopBtn = document.getElementById("closeShopBtn");
+    const closeShopBtn2 = document.getElementById("closeShopBtn2");
     const shopModal = document.getElementById("shopModal");
 
     // Tabs
@@ -1363,7 +1362,6 @@
     const stars = [];
     const warnings = [];
 
-    // ✅ 변경: hazardTimer(고정 setInterval) 제거 -> tick에서 누적 스폰(난이도 램프 가능)
     let starTimer = null;
     let warnTimer = null;
 
@@ -1443,47 +1441,51 @@
       return Math.pow(1.05, level) * scoreBonusMultiplier();
     }
 
-    // ✅ 폭탄 난이도 램프(핵심)
-    // - 0~120s: 스폰 간격을 더 길게(덜 떨어짐)
-    // - 120s 이후: 점점 더 자주(간격 감소)
+    // ✅ 초반 2분(120s) 난이도 대폭 하향: 폭탄 스폰 “매우 적게”
     function hazardIntervalMs(livedSec){
       const m = modes[modeIdx];
       const base = m.hazardRate;
 
-      // 0~120초: 1.35배(약 26% 덜) -> 1.10배로 완만히
+      // 0~120초: 3.0배(매우 적게) -> 1.6배로 완만히 증가
       if (livedSec <= 120){
         const t = livedSec / 120;           // 0..1
-        const factor = 1.35 - 0.25 * t;     // 1.35 -> 1.10
+        const factor = 3.0 - 1.4 * t;       // 3.0 -> 1.6
         return Math.round(base * factor);
       }
 
-      // 120~240초: 1.10 -> 0.90 (2분~4분에 체감 상승)
+      // 120~240초: 1.6 -> 1.05 (2~4분에 체감 상승)
       if (livedSec <= 240){
-        const t = (livedSec - 120) / 120;  // 0..1
-        const factor = 1.10 - 0.20 * t;    // 1.10 -> 0.90
+        const t = (livedSec - 120) / 120;   // 0..1
+        const factor = 1.6 - 0.55 * t;      // 1.6 -> 1.05
         return Math.round(base * factor);
       }
 
-      // 240초 이후: 0.90 -> 0.78까지 천천히(상한)
-      const t = Math.min((livedSec - 240) / 240, 1); // 0..1 (최대 8분까지 램프)
-      const factor = 0.90 - 0.12 * t;                // 0.90 -> 0.78
+      // 240초 이후: 1.05 -> 0.82까지 천천히(상한)
+      const t = Math.min((livedSec - 240) / 240, 1); // 0..1
+      const factor = 1.05 - 0.23 * t;                // 1.05 -> 0.82
       return Math.round(base * factor);
     }
 
-    // ✅ 텔레그래프도 초반은 덜, 이후 조금 더
+    // ✅ 텔레그래프도 초반 2분은 훨씬 덜
     function telegraphChanceNow(livedSec){
       const m = modes[modeIdx];
       const base = m.telegraphChance + Math.min(0.22, currentTier()*0.04);
 
-      // 0~120초: base의 0.85배 -> 1.0배로 복귀
+      // 0~120초: base의 0.45배 -> 0.80배
       if (livedSec <= 120){
         const t = livedSec / 120;
-        return base * (0.85 + 0.15 * t);
+        return base * (0.45 + 0.35 * t);
       }
 
-      // 120초 이후: base * (1.0 -> 1.08) (너무 과해지지 않게)
-      const t = Math.min((livedSec - 120) / 240, 1);
-      return base * (1.0 + 0.08 * t);
+      // 120~240초: 0.80배 -> 1.0배
+      if (livedSec <= 240){
+        const t = (livedSec - 120) / 120;
+        return base * (0.80 + 0.20 * t);
+      }
+
+      // 이후: base * (1.0 -> 1.06)
+      const t = Math.min((livedSec - 240) / 240, 1);
+      return base * (1.0 + 0.06 * t);
     }
 
     // ===== Spawning =====
@@ -1606,7 +1608,6 @@
 
       const m = modes[modeIdx];
       const chance = telegraphChanceNow(livedSec);
-
       if (Math.random() > chance) return;
 
       let x = Math.random() * (gW - 6);
@@ -1732,7 +1733,7 @@
       lastTier = -1;
       applyJetTier(true);
 
-      hazardAcc = 0; // ✅ 누적기 리셋
+      hazardAcc = 0;
 
       closeShop();
       showOverlay();
@@ -1750,10 +1751,8 @@
       const m = modes[modeIdx];
       const starInterval = Math.max(380, Math.round(m.starRate / starRateMultiplier()));
 
-      // 별은 기존처럼 interval 유지
       starTimer = setInterval(spawnStar, starInterval);
 
-      // 경고는 자주 체크(실제 확률은 telegraphChanceNow로 램프)
       warnTimer = setInterval(()=>{
         const lived = (performance.now() - startAt) / 1000;
         spawnTelegraph(lived);
@@ -1772,7 +1771,7 @@
 
       if (final > best) {
         best = final;
-        localStorage.setItem(LS_BEST, String(best));
+        localStorage.setItem("xgp_best_v7", String(best));
         bestEl.textContent = best;
       }
 
@@ -1825,7 +1824,7 @@
 
       const m = modes[modeIdx];
 
-      // ✅ 폭탄 스폰(난이도 램프)
+      // ✅ 폭탄 스폰(초반 2분 대폭 하향)
       hazardAcc += dt * 1000;
       const hInt = hazardIntervalMs(lived);
       while (hazardAcc >= hInt){
@@ -2152,6 +2151,7 @@
 
     openShopBtn.addEventListener("click", ()=> openShop());
     closeShopBtn.addEventListener("click", ()=> closeShop());
+    closeShopBtn2.addEventListener("click", ()=> closeShop());
 
     window.addEventListener("resize", () => {
       measureGame();
@@ -2178,7 +2178,7 @@
 
       level = upgLevel;
 
-      best = Number(localStorage.getItem(LS_BEST) || 0);
+      best = Number(localStorage.getItem("xgp_best_v7") || 0);
       bestEl.textContent = best;
 
       lastTier = -1;
