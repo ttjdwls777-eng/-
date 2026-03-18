@@ -247,6 +247,17 @@
       #shopSection #upgradeBtn{padding:13px 14px}
     }
 
+
+    /* mobile gameplay safety fix */
+    #gameWrap{height:100dvh;max-height:920px}
+    canvas{touch-action:none;-webkit-user-select:none;user-select:none}
+    @media (max-width:700px){
+      html,body,#app{height:100dvh}
+      #gameWrap{width:100vw;height:100dvh;max-height:none}
+      canvas{width:100vw;height:100dvh}
+      .menuPanel{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+    }
+
   </style>
 </head>
 <body>
