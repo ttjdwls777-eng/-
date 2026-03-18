@@ -19,27 +19,6 @@
   const upgradeBtn = document.getElementById("upgradeBtn");
 
   const tabPlay = document.getElementById("tabPlay");
-  const tab(() => {
-  "use strict";
-
-  const canvas = document.getElementById("game");
-  const ctx = canvas.getContext("2d");
-
-  const starVal = document.getElementById("starVal");
-  const rankVal = document.getElementById("rankVal");
-  const levelVal = document.getElementById("levelVal");
-  const bonusVal = document.getElementById("bonusVal");
-
-  const toast = document.getElementById("toast");
-  const menuOverlay = document.getElementById("menuOverlay");
-  const menuBtn = document.getElementById("menuBtn");
-  const resetBtn = document.getElementById("resetBtn");
-  const nameBtn = document.getElementById("nameBtn");
-  const bgmBtn = document.getElementById("bgmBtn");
-  const startBtn = document.getElementById("startBtn");
-  const upgradeBtn = document.getElementById("upgradeBtn");
-
-  const tabPlay = document.getElementById("tabPlay");
   const tabShop = document.getElementById("tabShop");
   const tabBoard = document.getElementById("tabBoard");
   const playSection = document.getElementById("playSection");
@@ -71,6 +50,8 @@
 
   const W = canvas.width;
   const H = canvas.height;
+
+  document.body.style.touchAction = "none";
 
   let running = false;
   let last = 0;
