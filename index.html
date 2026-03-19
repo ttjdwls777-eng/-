@@ -497,6 +497,112 @@
       }
     }
 
+  
+    /* pause / revive premium ui */
+    #menuBtn{
+      background:
+        linear-gradient(180deg, rgba(77,214,255,.20), rgba(77,214,255,.08)),
+        var(--panel);
+      box-shadow:0 8px 18px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    #resetBtn{
+      border-color:rgba(255,107,95,.42);
+      background:
+        linear-gradient(180deg, rgba(255,107,95,.20), rgba(255,107,95,.08)),
+        var(--panel);
+      color:#ffd9d5;
+      box-shadow:0 8px 18px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    #startBtn{
+      transition:filter .15s ease, transform .15s ease, box-shadow .15s ease;
+    }
+    #startBtn.is-resume{
+      border-color:rgba(125,255,155,.32);
+      background:
+        linear-gradient(180deg, rgba(125,255,155,.18), rgba(125,255,155,.08)),
+        linear-gradient(180deg, rgba(17,29,56,.95), rgba(8,15,30,.95));
+      color:#e8fff0;
+      box-shadow:0 10px 22px rgba(0,0,0,.22), 0 0 16px rgba(125,255,155,.08), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    #startBtn.is-start{
+      border-color:rgba(122,216,255,.36);
+      background:
+        linear-gradient(180deg, rgba(122,216,255,.18), rgba(122,216,255,.08)),
+        linear-gradient(180deg, rgba(17,29,56,.95), rgba(8,15,30,.95));
+      color:#eaf8ff;
+      box-shadow:0 10px 22px rgba(0,0,0,.22), 0 0 16px rgba(122,216,255,.08), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+
+    #reviveModal{
+      position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+      background:rgba(0,0,0,.66);z-index:45;padding:16px;
+      backdrop-filter:blur(4px);
+    }
+    .revivePanel{
+      width:min(360px,94%);
+      border-radius:20px;
+      padding:18px;
+      border:1px solid rgba(122,216,255,.24);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(122,216,255,.14), transparent 40%),
+        radial-gradient(circle at 100% 0%, rgba(178,93,255,.14), transparent 34%),
+        linear-gradient(180deg, rgba(10,18,34,.98), rgba(5,10,19,.96));
+      box-shadow:0 24px 60px rgba(0,0,0,.40), inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    .reviveBadge{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      color:#dff6ff;font-size:11px;font-weight:700;letter-spacing:.8px;
+      margin-bottom:10px;
+    }
+    .reviveTitle{
+      font-size:22px;font-weight:800;line-height:1.12;
+      margin:0 0 8px;color:#fff;
+    }
+    .reviveText{
+      margin:0;color:#a8d3e5;font-size:13px;line-height:1.65;
+    }
+    .reviveCostCard{
+      margin-top:14px;padding:12px 14px;border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,216,74,.10), rgba(255,216,74,.04));
+      border:1px solid rgba(255,216,74,.16);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .reviveCostLabel{
+      color:#9fc9de;font-size:11px;letter-spacing:.8px;
+    }
+    .reviveCostValue{
+      color:#ffe27d;font-size:20px;font-weight:800;line-height:1;
+    }
+    .reviveActions{
+      display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;
+    }
+    .reviveActions button{
+      width:100%;padding:13px 14px;border-radius:14px;font-size:13px;
+    }
+    #reviveCancelBtn{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04)),
+        var(--panel);
+      border-color:rgba(255,255,255,.12);
+      color:#dcecff;
+    }
+    #reviveConfirmBtn{
+      background:
+        linear-gradient(180deg, rgba(255,216,74,.22), rgba(255,156,41,.14)),
+        linear-gradient(180deg, rgba(17,29,56,.95), rgba(8,15,30,.95));
+      border-color:rgba(255,216,74,.20);
+      color:#fff7d5;
+      box-shadow:0 8px 18px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    @media (max-width:700px){
+      .reviveTitle{font-size:20px}
+      .reviveActions button{padding:12px 12px}
+    }
+
   </style>
 </head>
 <body>
@@ -647,7 +753,26 @@
           style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(122,216,255,.35);background:rgba(255,255,255,.04);color:#fff;outline:none;font-size:14px" />
         <button id="nicknameSaveBtn" style="width:100%;margin-top:12px">SAVE</button>
       </div>
+    
+    <div id="reviveModal">
+      <div class="revivePanel">
+        <div class="reviveBadge">STAR REVIVE</div>
+        <div class="reviveTitle">Use 50 STAR and continue?</div>
+        <p class="reviveText">Your current run will continue from a protected revive state.</p>
+        <div class="reviveCostCard">
+          <div>
+            <div class="reviveCostLabel">REVIVE COST</div>
+          </div>
+          <div class="reviveCostValue">50 STAR</div>
+        </div>
+        <div class="reviveActions">
+          <button id="reviveCancelBtn">CANCEL</button>
+          <button id="reviveConfirmBtn">USE STAR</button>
+        </div>
+      </div>
     </div>
+
+</div>
   </div>
 </div>
 
