@@ -258,6 +258,97 @@
       .menuPanel{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
     }
 
+
+    /* premium leaderboard facelift */
+    #boardSection .boardHero{
+      position:relative;overflow:hidden;margin-bottom:12px;padding:14px 14px 12px;border-radius:18px;
+      border:1px solid rgba(122,216,255,.24);
+      background:
+        radial-gradient(circle at 14% 18%, rgba(255,216,74,.14), transparent 24%),
+        radial-gradient(circle at 86% 14%, rgba(77,214,255,.16), transparent 26%),
+        linear-gradient(135deg, rgba(13,26,55,.96), rgba(8,14,28,.92));
+      box-shadow:0 14px 34px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    #boardSection .boardHeroTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+    #boardSection .boardEyebrow{
+      display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+      font-size:11px;letter-spacing:.9px;color:#dff7ff;font-weight:700;
+    }
+    #boardSection .boardChip{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:72px;padding:6px 10px;border-radius:999px;
+      background:linear-gradient(135deg, rgba(77,214,255,.18), rgba(77,214,255,.06));
+      border:1px solid rgba(77,214,255,.22);color:#bdf3ff;font-weight:700;font-size:11px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    #boardSection .boardHeroTitle{margin:0;font-size:22px;line-height:1.15;letter-spacing:.3px}
+    #boardSection .boardHeroSub{margin:6px 0 0;color:#bfe5f5;font-size:13px;line-height:1.6}
+    #boardSection .boardFrame{
+      position:relative;overflow:hidden;margin-top:0;padding:14px;border-radius:18px;
+      border:1px solid rgba(122,216,255,.18);
+      background:
+        radial-gradient(circle at 100% 0%, rgba(77,214,255,.08), transparent 30%),
+        radial-gradient(circle at 0% 0%, rgba(178,93,255,.10), transparent 26%),
+        linear-gradient(180deg, rgba(10,18,34,.96), rgba(5,10,19,.94));
+      box-shadow:0 16px 36px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    #boardSection .boardHead{
+      display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:12px;
+    }
+    #boardSection .boardTitleWrap{min-width:0}
+    #boardSection #lbBox h3{
+      margin:0;font-size:18px;letter-spacing:.4px;color:#eefaff;
+    }
+    #boardSection .boardDesc{
+      margin:4px 0 0;color:#9fc9de;font-size:12px;line-height:1.5;
+    }
+    #boardSection .boardModeBadge{
+      display:inline-flex;align-items:center;justify-content:center;
+      padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:700;color:#d8f4ff;
+      white-space:nowrap;
+    }
+    #boardSection #lbList{margin:10px 0 0;padding:0;list-style:none}
+    #boardSection #lbList li{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      margin-bottom:8px;padding:11px 12px;border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));
+      border:1px solid rgba(255,255,255,.07);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    #boardSection #lbList li:nth-child(1){
+      background:
+        radial-gradient(circle at 0% 0%, rgba(255,216,74,.12), transparent 36%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border-color:rgba(255,216,74,.20);
+      box-shadow:0 8px 22px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    #boardSection #lbList li:nth-child(2){border-color:rgba(180,206,220,.18)}
+    #boardSection #lbList li:nth-child(3){border-color:rgba(214,156,88,.18)}
+    #boardSection .rankBadge{gap:10px}
+    #boardSection .rankNum{
+      width:30px;height:30px;border-radius:50%;
+      display:inline-flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+      color:#d8f4ff;font-weight:800;
+    }
+    #boardSection .crown{font-size:17px;filter:drop-shadow(0 0 8px rgba(255,216,74,.18))}
+    #boardSection .nameText{max-width:170px;font-weight:700;color:#eefaff}
+    #boardSection .scoreText{
+      min-width:74px;text-align:right;
+      font-weight:800;color:#ffe27d;
+      padding:6px 10px;border-radius:999px;
+      background:rgba(255,216,74,.08);border:1px solid rgba(255,216,74,.14);
+    }
+    @media (max-width:700px){
+      #boardSection .boardHeroTitle{font-size:20px}
+      #boardSection .boardHead{grid-template-columns:1fr}
+      #boardSection .boardModeBadge{justify-self:start}
+      #boardSection .nameText{max-width:120px}
+      #boardSection .scoreText{min-width:64px;padding:5px 8px}
+    }
+
   </style>
 </head>
 <body>
@@ -319,7 +410,7 @@
               <div class="shopChip">STAR LAB</div>
             </div>
             <h2 class="shopHeroTitle">Upgrade your ship and push your rank faster.</h2>
-            <p class="shopHeroSub">Check out my level and current bonuses.</p>
+            <p class="shopHeroSub">Everything below uses the same original upgrade system. Only the shop design was enhanced.</p>
           </div>
 
           <div class="shopItem">
@@ -346,7 +437,7 @@
             </div>
 
             <button id="upgradeBtn">BUY UPGRADE</button>
-            <div class="shopHint">Upgrade to score more points.</div>
+            <div class="shopHint">Upgrade cost, level, bonus, and purchase behavior are unchanged. This is a visual upgrade only.</div>
 
             <div class="previewSliderWrap">
               <div class="previewSliderTitle">EFFECT PREVIEW · LEVEL 10 / 20 / 30 / 40 / 50</div>
@@ -377,9 +468,23 @@
         </div>
 
         <div id="boardSection" class="menuSection" style="min-height:0">
+          <div class="boardHero">
+            <div class="boardHeroTop">
+              <div class="boardEyebrow">GALACTIC RANK BOARD</div>
+              <div class="boardChip">TOP PILOTS</div>
+            </div>
+            <h2 class="boardHeroTitle">Track the best runs across the galaxy.</h2>
+            <p class="boardHeroSub">Leaderboard logic is unchanged. This update only upgrades the board design and readability.</p>
+          </div>
+
           <div id="lbBox" class="boardFrame">
-            <h3>ONLINE RANK BOARD · TOP20</h3>
-            <div class="tiny" id="lbMode">Checking online mode...</div>
+            <div class="boardHead">
+              <div class="boardTitleWrap">
+                <h3>TOP RANKERS</h3>
+                <p class="boardDesc">Highest rank scores are listed here in descending order.</p>
+              </div>
+              <div class="boardModeBadge" id="lbMode">Checking online mode...</div>
+            </div>
             <ol id="lbList"></ol>
           </div>
         </div>
