@@ -64,6 +64,7 @@
   let rankSyncTimer = 0;
   let runSessionActive = false;
   let revivePromptOpen = false;
+  let deathPending = false;
 
 
   function updateStartButton() {
@@ -930,27 +931,37 @@
   }
 
   async function requestRevive() {
-    if (revivePromptOpen || !canRevive()) {
+    if (revivePromptOpen) return;
+    if (!canRevive()) {
+      deathPending = false;
       endRun();
       return;
     }
+
     revivePromptOpen = true;
+    deathPending = true;
     running = false;
     stopBGM();
+
     const accepted = await openReviveModal();
+
     revivePromptOpen = false;
 
     if (!accepted) {
+      deathPending = false;
       endRun();
       return;
     }
 
     if (!canRevive()) {
+      deathPending = false;
       endRun();
       return;
     }
 
     performRevive();
+    deathPending = false;
+    runSessionActive = true;
     running = true;
     last = 0;
     startBGM();
@@ -958,8 +969,7 @@
   }
 
   function endRun() {
-
-    if (!running) return;
+    if (!running && !runSessionActive && !deathPending) return;
     running = false;
 
     if (run.rankPoint > save.bestRank) {
@@ -976,6 +986,7 @@
     switchTab("play");
     stopBGM();
     runSessionActive = false;
+    deathPending = false;
     updateStartButton();
     menuOverlay.style.display = "flex";
   }
