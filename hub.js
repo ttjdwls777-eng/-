@@ -975,6 +975,7 @@
     updateHUD();
     switchTab("play");
     stopBGM();
+    runSessionActive = false;
     updateStartButton();
     menuOverlay.style.display = "flex";
   }
