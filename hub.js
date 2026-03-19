@@ -145,6 +145,7 @@
   const onlineConfig = window.XGP_ONLINE_CONFIG || { enabled: false, firebaseConfig: null };
   let useFirebase = false;
   let db = null;
+  let firebaseInitPromise = null;
 
   const save = {
     starCurrency: Number(localStorage.getItem("xgp_v5_star") || 0),
@@ -466,24 +467,42 @@
   }
 
   async function initFirebase() {
-    if (!onlineConfig.enabled || !onlineConfig.firebaseConfig || !onlineConfig.firebaseConfig.projectId) {
-      lbMode.textContent = "Online required";
-      return;
-    }
-    try {
-      const [{ initializeApp }, { getFirestore, doc, getDoc, setDoc, runTransaction }] = await Promise.all([
-        import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js"),
-        import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js"),
-      ]);
-      const app = initializeApp(onlineConfig.firebaseConfig);
-      db = { api: { getFirestore, doc, getDoc, setDoc, runTransaction }, store: getFirestore(app) };
-      useFirebase = true;
-      lbMode.textContent = "Online mode";
-      await loadLeaderboard();
-    } catch (e) {
-      console.error(e);
-      lbMode.textContent = "Online required";
-    }
+    if (useFirebase && db) return true;
+    if (firebaseInitPromise) return firebaseInitPromise;
+
+    firebaseInitPromise = (async () => {
+      if (!onlineConfig.enabled || !onlineConfig.firebaseConfig || !onlineConfig.firebaseConfig.projectId) {
+        lbMode.textContent = "Online required";
+        return false;
+      }
+      try {
+        const [{ initializeApp, getApps, getApp }, { getFirestore, doc, getDoc, setDoc, runTransaction }] = await Promise.all([
+          import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js"),
+          import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js"),
+        ]);
+        const app = getApps().length ? getApp() : initializeApp(onlineConfig.firebaseConfig);
+        db = { api: { getFirestore, doc, getDoc, setDoc, runTransaction }, store: getFirestore(app) };
+        useFirebase = true;
+        lbMode.textContent = "Online mode";
+        await loadLeaderboard();
+        return true;
+      } catch (e) {
+        console.error(e);
+        useFirebase = false;
+        db = null;
+        lbMode.textContent = "Online required";
+        return false;
+      } finally {
+        firebaseInitPromise = null;
+      }
+    })();
+
+    return firebaseInitPromise;
+  }
+
+  async function ensureOnlineReady() {
+    if (useFirebase && db) return true;
+    return await initFirebase();
   }
 
   function spawnHazard() {
@@ -1444,10 +1463,11 @@
   });
 
 
-  function startRun() {
+  async function startRun() {
     ensureAudio();
 
-    if (!useFirebase) {
+    const onlineReady = await ensureOnlineReady();
+    if (!onlineReady) {
       showToast("ONLINE REQUIRED");
       return;
     }
@@ -1503,7 +1523,8 @@
 
   nameMenuBtn.addEventListener("click", async () => {
     ensureAudio();
-    if (!useFirebase) {
+    const onlineReady = await ensureOnlineReady();
+    if (!onlineReady) {
       showToast("ONLINE REQUIRED");
       return;
     }
@@ -1521,8 +1542,8 @@
 
   (async () => {
     if (menuBtn) menuBtn.textContent = "PAUSE";
-    await initFirebase();
-    if (!useFirebase) {
+    const onlineReady = await initFirebase();
+    if (!onlineReady) {
       updateHUD();
       syncBGMButton();
       updateStartButton();
