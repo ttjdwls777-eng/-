@@ -13,19 +13,22 @@
   const menuOverlay = document.getElementById("menuOverlay");
   const menuBtn = document.getElementById("menuBtn");
   const resetBtn = document.getElementById("resetBtn");
-  const nameBtn = document.getElementById("nameBtn");
+  const nameMenuBtn = document.getElementById("nameMenuBtn");
   const bgmBtn = document.getElementById("bgmBtn");
   const startBtn = document.getElementById("startBtn");
   const upgradeBtn = document.getElementById("upgradeBtn");
 
   const tabPlay = document.getElementById("tabPlay");
+  const tabName = document.getElementById("tabName");
   const tabShop = document.getElementById("tabShop");
   const tabBoard = document.getElementById("tabBoard");
   const playSection = document.getElementById("playSection");
+  const nameSection = document.getElementById("nameSection");
   const shopSection = document.getElementById("shopSection");
   const boardSection = document.getElementById("boardSection");
 
   const playerNameText = document.getElementById("playerNameText");
+  const nameMenuCurrentText = document.getElementById("nameMenuCurrentText");
   const menuStarText = document.getElementById("menuStarText");
   const bestRankText = document.getElementById("bestRankText");
   const menuLevelText = document.getElementById("menuLevelText");
@@ -77,6 +80,8 @@
 
   function openReviveModal() {
     return new Promise((resolve) => {
+      if (nicknameModal) nicknameModal.style.display = "none";
+      if (menuOverlay) menuOverlay.style.display = "none";
       reviveModal.style.display = "flex";
 
       const close = (accepted) => {
@@ -337,6 +342,7 @@
     levelVal.textContent = save.level.toString();
     bonusVal.textContent = getRankBonusPercent().toFixed(1) + "%";
     playerNameText.textContent = playerName;
+    if (nameMenuCurrentText) nameMenuCurrentText.textContent = playerName;
     menuStarText.textContent = Math.floor(save.starCurrency).toString();
     bestRankText.textContent = Math.floor(save.bestRank).toString();
     menuLevelText.textContent = save.level.toString();
@@ -348,6 +354,7 @@
 
   function switchTab(name) {
     playSection.classList.toggle("active", name === "play");
+    nameSection.classList.toggle("active", name === "name");
     shopSection.classList.toggle("active", name === "shop");
     boardSection.classList.toggle("active", name === "board");
   }
@@ -942,6 +949,7 @@
     deathPending = true;
     running = false;
     stopBGM();
+    if (menuOverlay) menuOverlay.style.display = "none";
 
     const accepted = await openReviveModal();
 
@@ -1382,7 +1390,7 @@
     syncBGMButton();
   });
 
-  nameBtn.addEventListener("click", async () => {
+  nameMenuBtn.addEventListener("click", async () => {
     ensureAudio();
     playerName = await openNicknameModal(playerName);
     localStorage.setItem("xgp_v5_name", playerName);
@@ -1391,6 +1399,7 @@
   });
 
   tabPlay.addEventListener("click", () => switchTab("play"));
+  tabName.addEventListener("click", () => switchTab("name"));
   tabShop.addEventListener("click", () => switchTab("shop"));
   tabBoard.addEventListener("click", () => {
     switchTab("board");
