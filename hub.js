@@ -826,8 +826,8 @@
     });
   }
 
-  async function saveLeaderboard() {
-    const entry = { name: playerName, score: Math.floor(save.bestRank) };
+  async function saveLeaderboard(score = 0) {
+    const entry = { name: playerName, score: Math.floor(score) };
 
     if (useFirebase && db) {
       const { doc, getDoc, setDoc } = db.api;
@@ -897,10 +897,10 @@
     if (run.rankPoint > save.bestRank) {
       save.bestRank = Math.floor(run.rankPoint);
       persistSave();
-      saveLeaderboard();
+      saveLeaderboard(run.rankPoint);
       showToast("NEW BEST RANK");
     } else {
-      saveLeaderboard();
+      saveLeaderboard(run.rankPoint);
       showToast("RUN END");
     }
 
@@ -1309,4 +1309,3 @@
     requestAnimationFrame(loop);
   })();
 })();
-
