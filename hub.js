@@ -359,6 +359,44 @@
     boardSection.classList.toggle("active", name === "board");
   }
 
+  async function isNicknameTaken(name) {
+    if (!useFirebase || !db) return false;
+    const { doc, getDoc } = db.api;
+    const snap = await getDoc(doc(db.store, "xgp_nicknames", name.toLowerCase()));
+    return snap.exists();
+  }
+
+  async function registerNickname(name) {
+    if (!useFirebase || !db) return;
+    const { doc, setDoc } = db.api;
+    await setDoc(doc(db.store, "xgp_nicknames", name.toLowerCase()), {
+      originalName: name,
+      createdAt: Date.now(),
+    });
+  }
+
+  async function applyNicknameChange(nextName) {
+    const normalizedNext = String(nextName || "").trim();
+    const normalizedCurrent = String(playerName || "").trim();
+    if (!normalizedNext) return false;
+    if (normalizedNext === normalizedCurrent) return true;
+
+    if (useFirebase && db) {
+      const taken = await isNicknameTaken(normalizedNext);
+      if (taken) {
+        showToast("NAME ALREADY TAKEN");
+        return false;
+      }
+      await registerNickname(normalizedNext);
+    }
+
+    playerName = normalizedNext;
+    localStorage.setItem("xgp_v5_name", playerName);
+    updateHUD();
+    showToast("NAME SAVED");
+    return true;
+  }
+
   async function initFirebase() {
     if (!onlineConfig.enabled || !onlineConfig.firebaseConfig || !onlineConfig.firebaseConfig.projectId) {
       lbMode.textContent = "Local mode";
@@ -373,6 +411,10 @@
       db = { api: { getFirestore, doc, getDoc, setDoc }, store: getFirestore(app) };
       useFirebase = true;
       lbMode.textContent = "Online mode";
+      if (playerName) {
+        const taken = await isNicknameTaken(playerName);
+        if (!taken) await registerNickname(playerName);
+      }
       await loadLeaderboard();
     } catch (e) {
       console.error(e);
@@ -1392,10 +1434,8 @@
 
   nameMenuBtn.addEventListener("click", async () => {
     ensureAudio();
-    playerName = await openNicknameModal(playerName);
-    localStorage.setItem("xgp_v5_name", playerName);
-    updateHUD();
-    showToast("NAME SAVED");
+    const nextName = await openNicknameModal(playerName);
+    await applyNicknameChange(nextName);
   });
 
   tabPlay.addEventListener("click", () => switchTab("play"));
@@ -1409,8 +1449,8 @@
   (async () => {
     if (menuBtn) menuBtn.textContent = "PAUSE";
     if (!playerName) {
-      playerName = await openNicknameModal("");
-      localStorage.setItem("xgp_v5_name", playerName);
+      const firstName = await openNicknameModal("");
+      await applyNicknameChange(firstName);
     }
     updateHUD();
     syncBGMButton();
