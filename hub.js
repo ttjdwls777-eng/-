@@ -131,6 +131,16 @@
   }
 
   let playerName = localStorage.getItem("xgp_v5_name") || "";
+  const profileId = (() => {
+    let value = localStorage.getItem("xgp_v5_profile_id") || "";
+    if (!value) {
+      value = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : "xgp_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem("xgp_v5_profile_id", value);
+    }
+    return value;
+  })();
 
   const onlineConfig = window.XGP_ONLINE_CONFIG || { enabled: false, firebaseConfig: null };
   let useFirebase = false;
@@ -359,66 +369,120 @@
     boardSection.classList.toggle("active", name === "board");
   }
 
-  async function isNicknameTaken(name) {
-    if (!useFirebase || !db) return false;
-    const { doc, getDoc } = db.api;
-    const snap = await getDoc(doc(db.store, "xgp_nicknames", name.toLowerCase()));
-    return snap.exists();
-  }
 
-  async function registerNickname(name) {
-    if (!useFirebase || !db) return;
-    const { doc, setDoc } = db.api;
-    await setDoc(doc(db.store, "xgp_nicknames", name.toLowerCase()), {
-      originalName: name,
-      createdAt: Date.now(),
-    });
+  async function ensureNicknameOwnership(name) {
+    if (!useFirebase || !db) return false;
+    const normalized = String(name || "").trim();
+    if (!normalized) return false;
+
+    const { doc, runTransaction } = db.api;
+    const key = normalized.toLowerCase();
+
+    try {
+      const result = await runTransaction(db.store, async (transaction) => {
+        const ref = doc(db.store, "xgp_nicknames", key);
+        const snap = await transaction.get(ref);
+        if (snap.exists()) {
+          const data = snap.data() || {};
+          if (data.ownerId && data.ownerId !== profileId) {
+            return false;
+          }
+        }
+        transaction.set(ref, {
+          ownerId: profileId,
+          originalName: normalized,
+          updatedAt: Date.now(),
+        });
+        return true;
+      });
+      return !!result;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
   }
 
   async function applyNicknameChange(nextName) {
     const normalizedNext = String(nextName || "").trim();
     const normalizedCurrent = String(playerName || "").trim();
     if (!normalizedNext) return false;
-    if (normalizedNext === normalizedCurrent) return true;
 
-    if (useFirebase && db) {
-      const taken = await isNicknameTaken(normalizedNext);
-      if (taken) {
+    if (!useFirebase || !db) {
+      showToast("ONLINE REQUIRED");
+      return false;
+    }
+
+    const { doc, runTransaction, deleteDoc } = db.api;
+    const nextKey = normalizedNext.toLowerCase();
+    const currentKey = normalizedCurrent.toLowerCase();
+
+    try {
+      const result = await runTransaction(db.store, async (transaction) => {
+        const nextRef = doc(db.store, "xgp_nicknames", nextKey);
+        const nextSnap = await transaction.get(nextRef);
+
+        if (nextSnap.exists()) {
+          const nextData = nextSnap.data() || {};
+          if (nextData.ownerId && nextData.ownerId !== profileId) {
+            return { ok: false, reason: "taken" };
+          }
+        }
+
+        transaction.set(nextRef, {
+          ownerId: profileId,
+          originalName: normalizedNext,
+          updatedAt: Date.now(),
+        });
+
+        if (normalizedCurrent && currentKey !== nextKey) {
+          const currentRef = doc(db.store, "xgp_nicknames", currentKey);
+          const currentSnap = await transaction.get(currentRef);
+          if (currentSnap.exists()) {
+            const currentData = currentSnap.data() || {};
+            if (!currentData.ownerId || currentData.ownerId === profileId) {
+              transaction.delete(currentRef);
+            }
+          }
+        }
+
+        return { ok: true };
+      });
+
+      if (!result || !result.ok) {
         showToast("NAME ALREADY TAKEN");
         return false;
       }
-      await registerNickname(normalizedNext);
-    }
 
-    playerName = normalizedNext;
-    localStorage.setItem("xgp_v5_name", playerName);
-    updateHUD();
-    showToast("NAME SAVED");
-    return true;
+      playerName = normalizedNext;
+      localStorage.setItem("xgp_v5_name", playerName);
+      updateHUD();
+      showToast("NAME SAVED");
+      return true;
+    } catch (e) {
+      console.error(e);
+      showToast("ONLINE REQUIRED");
+      return false;
+    }
   }
 
   async function initFirebase() {
     if (!onlineConfig.enabled || !onlineConfig.firebaseConfig || !onlineConfig.firebaseConfig.projectId) {
-      lbMode.textContent = "Local mode";
+      lbMode.textContent = "Online required";
       return;
     }
     try {
-      const [{ initializeApp }, { getFirestore, doc, getDoc, setDoc }] = await Promise.all([
+      const [{ initializeApp }, { getFirestore, doc, getDoc, setDoc, runTransaction }] = await Promise.all([
         import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js"),
         import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js"),
       ]);
       const app = initializeApp(onlineConfig.firebaseConfig);
-      db = { api: { getFirestore, doc, getDoc, setDoc }, store: getFirestore(app) };
+      db = { api: { getFirestore, doc, getDoc, setDoc, runTransaction }, store: getFirestore(app) };
       useFirebase = true;
       lbMode.textContent = "Online mode";
-      if (playerName) {
-        const taken = await isNicknameTaken(playerName);
-        if (!taken) await registerNickname(playerName);
-      }
       await loadLeaderboard();
     } catch (e) {
       console.error(e);
-      lbMode.textContent = "Local mode";
+      lbMode.textContent = "Online required";
     }
   }
 
@@ -1383,6 +1447,11 @@
   function startRun() {
     ensureAudio();
 
+    if (!useFirebase) {
+      showToast("ONLINE REQUIRED");
+      return;
+    }
+
     if (runSessionActive && !running) {
       menuOverlay.style.display = "none";
       running = true;
@@ -1434,6 +1503,10 @@
 
   nameMenuBtn.addEventListener("click", async () => {
     ensureAudio();
+    if (!useFirebase) {
+      showToast("ONLINE REQUIRED");
+      return;
+    }
     const nextName = await openNicknameModal(playerName);
     await applyNicknameChange(nextName);
   });
@@ -1448,16 +1521,42 @@
 
   (async () => {
     if (menuBtn) menuBtn.textContent = "PAUSE";
-    if (!playerName) {
-      const firstName = await openNicknameModal("");
-      await applyNicknameChange(firstName);
+    await initFirebase();
+    if (!useFirebase) {
+      updateHUD();
+      syncBGMButton();
+      updateStartButton();
+      renderShopPreviews();
+      loadLeaderboard();
+      requestAnimationFrame(loop);
+      return;
     }
+
+    if (!playerName) {
+      let saved = false;
+      while (!saved) {
+        const firstName = await openNicknameModal("");
+        saved = await applyNicknameChange(firstName);
+      }
+    } else {
+      const ok = await ensureNicknameOwnership(playerName);
+      if (!ok) {
+        playerName = "";
+        localStorage.removeItem("xgp_v5_name");
+        updateHUD();
+        let saved = false;
+        while (!saved) {
+          const firstName = await openNicknameModal("");
+          saved = await applyNicknameChange(firstName);
+        }
+      }
+    }
+
     updateHUD();
     syncBGMButton();
     updateStartButton();
     renderShopPreviews();
     loadLeaderboard();
-    initFirebase();
     requestAnimationFrame(loop);
   })();
 })();
