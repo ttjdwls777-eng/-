@@ -357,6 +357,9 @@
     nameSection.classList.toggle("active", name === "name");
     shopSection.classList.toggle("active", name === "shop");
     boardSection.classList.toggle("active", name === "board");
+    if (name === "shop") {
+      requestAnimationFrame(() => renderShopPreviews());
+    }
   }
 
   async function initFirebase() {
@@ -497,274 +500,239 @@
     ctx.globalAlpha = 1;
   }
 
-  function drawPlayer(now) {
-    const aura = getPlayerAura();
+  function drawShipModel(targetCtx, x, y, scale = 1, opts = {}) {
+    const {
+      tilt = 0,
+      aura = null,
+      extraColor = "#7be5ff",
+      rainbow = false,
+      compact = false,
+      engineFlicker = 0,
+      now = 0,
+    } = opts;
+
+    const c = targetCtx;
+    c.save();
+    c.translate(x, y);
+    c.rotate(tilt);
+    c.scale(scale, scale);
+
     if (aura) {
-      ctx.save();
-      const color = aura === "rainbow" ? auraColorAt(now * 0.001) : aura;
-      ctx.globalCompositeOperation = "lighter";
-      const glowR = player.r + 20 + Math.sin(now * 0.009) * 4;
-      const g = ctx.createRadialGradient(player.x, player.y + 12, 6, player.x, player.y + 12, glowR);
-      g.addColorStop(0, color + "bb");
-      g.addColorStop(0.38, color + "55");
-      g.addColorStop(1, color + "00");
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(player.x, player.y, glowR, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-      emitParticles(player.x, player.y + 26, color, 1, 0.28);
+      c.save();
+      c.globalCompositeOperation = "lighter";
+      const ag = c.createRadialGradient(0, 10, 6, 0, 10, compact ? 42 : 48);
+      if (rainbow) {
+        ag.addColorStop(0, "rgba(255,87,87,.74)");
+        ag.addColorStop(0.22, "rgba(255,216,74,.58)");
+        ag.addColorStop(0.48, "rgba(66,255,114,.46)");
+        ag.addColorStop(0.72, "rgba(77,214,255,.40)");
+        ag.addColorStop(1, "rgba(178,93,255,0)");
+      } else {
+        ag.addColorStop(0, aura + "bb");
+        ag.addColorStop(0.38, aura + "44");
+        ag.addColorStop(1, aura + "00");
+      }
+      c.fillStyle = ag;
+      c.beginPath();
+      c.arc(0, 6, compact ? 34 : 38, 0, Math.PI * 2);
+      c.fill();
+      c.restore();
     }
 
-    ctx.save();
-    ctx.translate(player.x, player.y);
-    const tilt = clamp(player.moveX * 0.24, -0.35, 0.35);
-    ctx.rotate(tilt);
-
-    ctx.globalCompositeOperation = "lighter";
-    const underGlow = ctx.createRadialGradient(0, 12, 8, 0, 12, 38);
-    underGlow.addColorStop(0, "rgba(120,232,255,.28)");
-    underGlow.addColorStop(0.42, "rgba(85,190,255,.14)");
+    c.save();
+    c.globalCompositeOperation = "lighter";
+    const underGlow = c.createRadialGradient(0, 14, 7, 0, 14, compact ? 34 : 38);
+    underGlow.addColorStop(0, "rgba(120,232,255,.34)");
+    underGlow.addColorStop(0.38, "rgba(85,190,255,.16)");
     underGlow.addColorStop(1, "rgba(85,190,255,0)");
-    ctx.fillStyle = underGlow;
-    ctx.beginPath();
-    ctx.ellipse(0, 12, 34, 18, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalCompositeOperation = "source-over";
+    c.fillStyle = underGlow;
+    c.beginPath();
+    c.ellipse(0, 14, compact ? 28 : 31, compact ? 15 : 17, 0, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
 
-    const wingShadow = ctx.createLinearGradient(-34, 10, 34, 10);
-    wingShadow.addColorStop(0, "rgba(13,34,66,.95)");
-    wingShadow.addColorStop(0.5, "rgba(28,84,134,.92)");
-    wingShadow.addColorStop(1, "rgba(13,34,66,.95)");
-    ctx.fillStyle = wingShadow;
-    ctx.beginPath();
-    ctx.moveTo(-34, 16);
-    ctx.lineTo(-12, -2);
-    ctx.lineTo(-7, 17);
-    ctx.lineTo(-19, 28);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(34, 16);
-    ctx.lineTo(12, -2);
-    ctx.lineTo(7, 17);
-    ctx.lineTo(19, 28);
-    ctx.closePath();
-    ctx.fill();
+    const shadowWing = c.createLinearGradient(-38, 8, 38, 8);
+    shadowWing.addColorStop(0, "#102745");
+    shadowWing.addColorStop(0.52, "#173d66");
+    shadowWing.addColorStop(1, "#102745");
+    c.fillStyle = shadowWing;
+    c.beginPath();
+    c.moveTo(-36, 18); c.lineTo(-15, -2); c.lineTo(-9, 18); c.lineTo(-22, 31); c.lineTo(-30, 27); c.closePath();
+    c.fill();
+    c.beginPath();
+    c.moveTo(36, 18); c.lineTo(15, -2); c.lineTo(9, 18); c.lineTo(22, 31); c.lineTo(30, 27); c.closePath();
+    c.fill();
 
-    const wingGrad = ctx.createLinearGradient(-32, 0, 32, 0);
-    wingGrad.addColorStop(0, "#235f99");
-    wingGrad.addColorStop(0.2, "#4cb7f8");
-    wingGrad.addColorStop(0.5, "#b4f1ff");
-    wingGrad.addColorStop(0.8, "#4cb7f8");
-    wingGrad.addColorStop(1, "#235f99");
-    ctx.fillStyle = wingGrad;
-    ctx.beginPath();
-    ctx.moveTo(-31, 14);
-    ctx.lineTo(-9, -8);
-    ctx.lineTo(-4, 10);
-    ctx.lineTo(-16, 21);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(31, 14);
-    ctx.lineTo(9, -8);
-    ctx.lineTo(4, 10);
-    ctx.lineTo(16, 21);
-    ctx.closePath();
-    ctx.fill();
+    const wingGrad = c.createLinearGradient(-34, 0, 34, 0);
+    wingGrad.addColorStop(0, "#163e6f");
+    wingGrad.addColorStop(0.22, "#2a78b9");
+    wingGrad.addColorStop(0.5, "#bff5ff");
+    wingGrad.addColorStop(0.78, "#3ca9ee");
+    wingGrad.addColorStop(1, "#163e6f");
+    c.fillStyle = wingGrad;
+    c.beginPath();
+    c.moveTo(-32, 15); c.lineTo(-11, -10); c.lineTo(-2, 9); c.lineTo(-15, 23); c.lineTo(-24, 21); c.closePath();
+    c.fill();
+    c.beginPath();
+    c.moveTo(32, 15); c.lineTo(11, -10); c.lineTo(2, 9); c.lineTo(15, 23); c.lineTo(24, 21); c.closePath();
+    c.fill();
 
-    ctx.fillStyle = "#143b63";
-    ctx.beginPath();
-    ctx.moveTo(-20, 18);
-    ctx.lineTo(-7, 8);
-    ctx.lineTo(-9, 27);
-    ctx.lineTo(-18, 25);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(20, 18);
-    ctx.lineTo(7, 8);
-    ctx.lineTo(9, 27);
-    ctx.lineTo(18, 25);
-    ctx.closePath();
-    ctx.fill();
+    c.fillStyle = "#0d2d4f";
+    c.beginPath();
+    c.moveTo(-27, 8); c.lineTo(-18, 1); c.lineTo(-12, 11); c.lineTo(-20, 17); c.closePath();
+    c.fill();
+    c.beginPath();
+    c.moveTo(27, 8); c.lineTo(18, 1); c.lineTo(12, 11); c.lineTo(20, 17); c.closePath();
+    c.fill();
 
-    ctx.fillStyle = "#1b5a8f";
-    ctx.beginPath();
-    ctx.moveTo(0, -40);
-    ctx.lineTo(8, -24);
-    ctx.lineTo(0, -28);
-    ctx.lineTo(-8, -24);
-    ctx.closePath();
-    ctx.fill();
+    c.strokeStyle = "rgba(180,240,255,.55)";
+    c.lineWidth = 1.25;
+    c.beginPath(); c.moveTo(-28, 17); c.lineTo(-11, -4); c.lineTo(-7, 10); c.stroke();
+    c.beginPath(); c.moveTo(28, 17); c.lineTo(11, -4); c.lineTo(7, 10); c.stroke();
 
-    const hullShadow = ctx.createLinearGradient(0, -36, 0, 32);
-    hullShadow.addColorStop(0, "#10365d");
-    hullShadow.addColorStop(0.55, "#1d6fa7");
-    hullShadow.addColorStop(1, "#0d2f4a");
-    ctx.fillStyle = hullShadow;
-    ctx.beginPath();
-    ctx.moveTo(0, -39);
-    ctx.lineTo(17, -11);
-    ctx.lineTo(16, 21);
-    ctx.lineTo(0, 33);
-    ctx.lineTo(-16, 21);
-    ctx.lineTo(-17, -11);
-    ctx.closePath();
-    ctx.fill();
+    c.fillStyle = "#17456f";
+    c.beginPath();
+    c.moveTo(0, -46); c.lineTo(10, -28); c.lineTo(0, -31); c.lineTo(-10, -28); c.closePath();
+    c.fill();
 
-    const bodyG = ctx.createLinearGradient(0, -36, 0, 30);
+    const dorsal = c.createLinearGradient(0, -48, 0, -8);
+    dorsal.addColorStop(0, "#f1fdff");
+    dorsal.addColorStop(0.4, "#8fe6ff");
+    dorsal.addColorStop(1, "#1a5f97");
+    c.fillStyle = dorsal;
+    c.beginPath();
+    c.moveTo(0, -49); c.lineTo(7.5, -26); c.lineTo(0, -30); c.lineTo(-7.5, -26); c.closePath();
+    c.fill();
+
+    const hullShadow = c.createLinearGradient(0, -40, 0, 36);
+    hullShadow.addColorStop(0, "#102e4f");
+    hullShadow.addColorStop(0.55, "#14466f");
+    hullShadow.addColorStop(1, "#0a2339");
+    c.fillStyle = hullShadow;
+    c.beginPath();
+    c.moveTo(0, -40); c.lineTo(18, -12); c.lineTo(19, 20); c.lineTo(0, 37); c.lineTo(-19, 20); c.lineTo(-18, -12); c.closePath();
+    c.fill();
+
+    const bodyG = c.createLinearGradient(0, -38, 0, 33);
     bodyG.addColorStop(0, "#ffffff");
-    bodyG.addColorStop(0.18, "#ecfbff");
-    bodyG.addColorStop(0.42, "#9fe6ff");
-    bodyG.addColorStop(0.72, "#49a9e8");
-    bodyG.addColorStop(1, "#1a5f97");
-    ctx.fillStyle = bodyG;
-    ctx.beginPath();
-    ctx.moveTo(0, -36);
-    ctx.lineTo(13.5, -11);
-    ctx.lineTo(12.5, 19);
-    ctx.lineTo(0, 28);
-    ctx.lineTo(-12.5, 19);
-    ctx.lineTo(-13.5, -11);
-    ctx.closePath();
-    ctx.fill();
+    bodyG.addColorStop(0.12, "#effdff");
+    bodyG.addColorStop(0.34, "#b6f2ff");
+    bodyG.addColorStop(0.68, "#4aa7ec");
+    bodyG.addColorStop(1, "#144f86");
+    c.fillStyle = bodyG;
+    c.beginPath();
+    c.moveTo(0, -38); c.lineTo(13.5, -14); c.lineTo(15, 17); c.lineTo(0, 31); c.lineTo(-15, 17); c.lineTo(-13.5, -14); c.closePath();
+    c.fill();
 
-    const coreGlow = ctx.createLinearGradient(0, -24, 0, 24);
-    coreGlow.addColorStop(0, "rgba(255,255,255,.9)");
-    coreGlow.addColorStop(0.6, "rgba(173,232,255,.42)");
-    coreGlow.addColorStop(1, "rgba(173,232,255,0)");
-    ctx.strokeStyle = coreGlow;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0, -22);
-    ctx.lineTo(0, 18);
-    ctx.stroke();
+    c.fillStyle = "rgba(255,255,255,.16)";
+    c.beginPath();
+    c.moveTo(-4, -34); c.lineTo(0, -29); c.lineTo(4, -34); c.lineTo(0, -10); c.closePath();
+    c.fill();
 
-    ctx.strokeStyle = "rgba(255,255,255,.78)";
-    ctx.lineWidth = 1.25;
-    ctx.beginPath();
-    ctx.moveTo(-6, -1);
-    ctx.lineTo(-2, 8);
-    ctx.lineTo(-6, 16);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(6, -1);
-    ctx.lineTo(2, 8);
-    ctx.lineTo(6, 16);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(-10, 5);
-    ctx.lineTo(-3, 11);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(10, 5);
-    ctx.lineTo(3, 11);
-    ctx.stroke();
+    c.strokeStyle = "rgba(255,255,255,.78)";
+    c.lineWidth = 1.35;
+    c.beginPath(); c.moveTo(-8, -1); c.lineTo(-2.5, 8); c.lineTo(-8, 18); c.stroke();
+    c.beginPath(); c.moveTo(8, -1); c.lineTo(2.5, 8); c.lineTo(8, 18); c.stroke();
+    c.beginPath(); c.moveTo(-11.5, 7); c.lineTo(-3, 12.5); c.stroke();
+    c.beginPath(); c.moveTo(11.5, 7); c.lineTo(3, 12.5); c.stroke();
+    c.beginPath(); c.moveTo(0, -20); c.lineTo(0, 19); c.strokeStyle = "rgba(165,235,255,.6)"; c.lineWidth = 2.4; c.stroke();
 
-    ctx.fillStyle = "#f6fcff";
-    ctx.beginPath();
-    ctx.moveTo(0, -42);
-    ctx.lineTo(9, -18);
-    ctx.lineTo(0, -21);
-    ctx.lineTo(-9, -18);
-    ctx.closePath();
-    ctx.fill();
+    const cockpitGlow = c.createLinearGradient(0, -28, 0, 4);
+    cockpitGlow.addColorStop(0, "#f7feff");
+    cockpitGlow.addColorStop(0.35, "#8de6ff");
+    cockpitGlow.addColorStop(1, "#0e2037");
+    c.fillStyle = cockpitGlow;
+    c.beginPath();
+    c.ellipse(0, -13, 7.8, 15.8, 0, 0, Math.PI * 2);
+    c.fill();
+    c.fillStyle = "rgba(255,255,255,.9)";
+    c.beginPath();
+    c.ellipse(-2.1, -17.5, 2.6, 6.3, -0.38, 0, Math.PI * 2);
+    c.fill();
 
-    const cockpitShadow = ctx.createLinearGradient(0, -24, 0, 4);
-    cockpitShadow.addColorStop(0, "rgba(255,255,255,.35)");
-    cockpitShadow.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = cockpitShadow;
-    ctx.beginPath();
-    ctx.ellipse(0, -11, 8.5, 15, 0, 0, Math.PI * 2);
-    ctx.fill();
+    c.fillStyle = "#0e2d49";
+    c.beginPath(); c.moveTo(-18, 18); c.lineTo(-8, 22); c.lineTo(-7, 30); c.lineTo(-15, 29); c.closePath(); c.fill();
+    c.beginPath(); c.moveTo(18, 18); c.lineTo(8, 22); c.lineTo(7, 30); c.lineTo(15, 29); c.closePath(); c.fill();
 
-    const cockpitG = ctx.createLinearGradient(0, -25, 0, 2);
-    cockpitG.addColorStop(0, "#f6feff");
-    cockpitG.addColorStop(0.35, "#9fe6ff");
-    cockpitG.addColorStop(1, "#0e2239");
-    ctx.fillStyle = cockpitG;
-    ctx.beginPath();
-    ctx.ellipse(0, -11, 7.5, 14, 0, 0, Math.PI * 2);
-    ctx.fill();
+    const enginePanel = c.createLinearGradient(-12, 22, 12, 22);
+    enginePanel.addColorStop(0, "#daf7ff");
+    enginePanel.addColorStop(0.5, "#9ce9ff");
+    enginePanel.addColorStop(1, "#daf7ff");
+    c.fillStyle = enginePanel;
+    c.fillRect(-9, 22.5, 6.5, 7.2);
+    c.fillRect(2.5, 22.5, 6.5, 7.2);
 
-    ctx.fillStyle = "rgba(255,255,255,.86)";
-    ctx.beginPath();
-    ctx.ellipse(-2.2, -15.5, 2.7, 5.8, -0.45, 0, Math.PI * 2);
-    ctx.fill();
+    c.fillStyle = "#7be5ff";
+    c.beginPath(); c.arc(-15.5, 12.5, 2.3, 0, Math.PI * 2); c.fill();
+    c.fillStyle = "#ff6e64";
+    c.beginPath(); c.arc(15.5, 12.5, 2.3, 0, Math.PI * 2); c.fill();
 
-    ctx.fillStyle = "#173a57";
-    ctx.beginPath();
-    ctx.moveTo(-9, 20);
-    ctx.lineTo(-4, 24);
-    ctx.lineTo(-4, 30);
-    ctx.lineTo(-10, 30);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(9, 20);
-    ctx.lineTo(4, 24);
-    ctx.lineTo(4, 30);
-    ctx.lineTo(10, 30);
-    ctx.closePath();
-    ctx.fill();
+    if (rainbow) {
+      const rg2 = c.createLinearGradient(-14, 0, 14, 0);
+      rg2.addColorStop(0, "#ff5757");
+      rg2.addColorStop(0.25, "#ffd84a");
+      rg2.addColorStop(0.5, "#42ff72");
+      rg2.addColorStop(0.75, "#4dd6ff");
+      rg2.addColorStop(1, "#b25dff");
+      c.strokeStyle = rg2;
+    } else {
+      c.strokeStyle = extraColor;
+    }
+    c.lineWidth = 2;
+    c.beginPath(); c.moveTo(-12, 2); c.lineTo(-4, 11); c.stroke();
+    c.beginPath(); c.moveTo(12, 2); c.lineTo(4, 11); c.stroke();
 
-    ctx.fillStyle = "#e8f7ff";
-    ctx.fillRect(-8.5, 22, 6, 8);
-    ctx.fillRect(2.5, 22, 6, 8);
+    c.fillStyle = "rgba(8,26,43,.9)";
+    c.beginPath();
+    c.moveTo(-4.5, 27); c.lineTo(-1.2, 20); c.lineTo(-8.2, 20.5); c.closePath();
+    c.fill();
+    c.beginPath();
+    c.moveTo(4.5, 27); c.lineTo(8.2, 20.5); c.lineTo(1.2, 20); c.closePath();
+    c.fill();
 
-    const flick = Math.sin(performance.now() * 0.045) * 4.2;
-    const plume = ctx.createLinearGradient(0, 22, 0, 41);
-    plume.addColorStop(0, "rgba(255,248,205,.96)");
-    plume.addColorStop(0.45, "rgba(255,184,91,.9)");
-    plume.addColorStop(1, "rgba(255,106,39,0)");
-    ctx.fillStyle = plume;
-    ctx.beginPath();
-    ctx.moveTo(-5.8, 40 + flick);
-    ctx.lineTo(1, 23);
-    ctx.lineTo(-10.5, 23);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(5.8, 40 + flick);
-    ctx.lineTo(10.5, 23);
-    ctx.lineTo(-1, 23);
-    ctx.closePath();
-    ctx.fill();
+    const flick = engineFlicker;
+    const plume = c.createLinearGradient(0, 22, 0, 45);
+    plume.addColorStop(0, "rgba(255,252,214,.98)");
+    plume.addColorStop(0.34, "rgba(117,255,255,.92)");
+    plume.addColorStop(0.68, "rgba(70,191,255,.78)");
+    plume.addColorStop(1, "rgba(36,115,255,0)");
+    c.fillStyle = plume;
+    c.beginPath();
+    c.moveTo(-6.2, 44 + flick); c.lineTo(0.8, 23); c.lineTo(-10.5, 23); c.closePath();
+    c.fill();
+    c.beginPath();
+    c.moveTo(6.2, 44 + flick); c.lineTo(10.5, 23); c.lineTo(-0.8, 23); c.closePath();
+    c.fill();
 
-    ctx.fillStyle = "#fff7d3";
-    ctx.beginPath();
-    ctx.moveTo(0, 35 + flick * 0.75);
-    ctx.lineTo(3.5, 24);
-    ctx.lineTo(-3.5, 24);
-    ctx.closePath();
-    ctx.fill();
+    c.fillStyle = "rgba(255,255,255,.92)";
+    c.beginPath();
+    c.moveTo(0, 39 + flick * 0.78); c.lineTo(3.6, 24); c.lineTo(-3.6, 24); c.closePath();
+    c.fill();
 
-    ctx.fillStyle = "#ff9a3e";
-    ctx.beginPath();
-    ctx.moveTo(-4.8, 33 + flick * 0.6);
-    ctx.lineTo(-2.1, 24);
-    ctx.lineTo(-8.2, 24);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(4.8, 33 + flick * 0.6);
-    ctx.lineTo(8.2, 24);
-    ctx.lineTo(2.1, 24);
-    ctx.closePath();
-    ctx.fill();
+    c.fillStyle = "#ffb04a";
+    c.beginPath(); c.moveTo(-4.5, 35 + flick * 0.6); c.lineTo(-2, 25); c.lineTo(-7.4, 25); c.closePath(); c.fill();
+    c.beginPath(); c.moveTo(4.5, 35 + flick * 0.6); c.lineTo(7.4, 25); c.lineTo(2, 25); c.closePath(); c.fill();
 
-    ctx.fillStyle = "#7be5ff";
-    ctx.beginPath();
-    ctx.arc(-14.5, 11, 2.1, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#ff6e64";
-    ctx.beginPath();
-    ctx.arc(14.5, 11, 2.1, 0, Math.PI * 2);
-    ctx.fill();
+    c.restore();
+  }
 
-    ctx.restore();
+  function drawPlayer(now) {
+    const auraBase = getPlayerAura();
+    const aura = auraBase === "rainbow" ? auraColorAt(now * 0.001) : auraBase;
+    if (auraBase) {
+      emitParticles(player.x, player.y + 26, aura, 1, 0.28);
+    }
+    const tilt = clamp(player.moveX * 0.24, -0.35, 0.35);
+    const flick = Math.sin(now * 0.045) * 4.2;
+    drawShipModel(ctx, player.x, player.y, 1, {
+      tilt,
+      aura,
+      extraColor: "#7be5ff",
+      rainbow: auraBase === "rainbow",
+      compact: false,
+      engineFlicker: flick,
+      now,
+    });
   }
 
   function drawMeteor(h) {
@@ -1366,166 +1334,24 @@
   function drawPreviewShip(canvas, auraColor, extraColor, rainbow = false) {
     if (!canvas) return;
     const pctx = canvas.getContext("2d");
-    const cw = canvas.width = Math.round(canvas.clientWidth * devicePixelRatio);
-    const ch = canvas.height = Math.round(canvas.clientHeight * devicePixelRatio);
+    const cssW = canvas.clientWidth || Number(canvas.getAttribute("width")) || 150;
+    const cssH = canvas.clientHeight || Number(canvas.getAttribute("height")) || 100;
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
     pctx.setTransform(1, 0, 0, 1, 0, 0);
-    pctx.clearRect(0, 0, cw, ch);
-    pctx.scale(devicePixelRatio, devicePixelRatio);
+    pctx.clearRect(0, 0, canvas.width, canvas.height);
+    pctx.scale(dpr, dpr);
 
-    const vw = canvas.clientWidth;
-    const vh = canvas.clientHeight;
-    pctx.save();
-    pctx.translate(vw * 0.5, vh * 0.52);
-
-    if (rainbow) {
-      const rg = pctx.createRadialGradient(0, 10, 5, 0, 10, 38);
-      rg.addColorStop(0, "rgba(255,87,87,.8)");
-      rg.addColorStop(0.25, "rgba(255,216,74,.65)");
-      rg.addColorStop(0.5, "rgba(66,255,114,.55)");
-      rg.addColorStop(0.75, "rgba(77,214,255,.5)");
-      rg.addColorStop(1, "rgba(178,93,255,0)");
-      pctx.fillStyle = rg;
-    } else {
-      const g = pctx.createRadialGradient(0, 10, 5, 0, 10, 38);
-      g.addColorStop(0, auraColor + "cc");
-      g.addColorStop(0.4, auraColor + "44");
-      g.addColorStop(1, auraColor + "00");
-      pctx.fillStyle = g;
-    }
-    pctx.beginPath();
-    pctx.arc(0, 6, 36, 0, Math.PI * 2);
-    pctx.fill();
-
-    pctx.globalCompositeOperation = "lighter";
-    const underGlow = pctx.createRadialGradient(0, 12, 8, 0, 12, 34);
-    underGlow.addColorStop(0, "rgba(120,232,255,.28)");
-    underGlow.addColorStop(0.42, "rgba(85,190,255,.14)");
-    underGlow.addColorStop(1, "rgba(85,190,255,0)");
-    pctx.fillStyle = underGlow;
-    pctx.beginPath();
-    pctx.ellipse(0, 12, 30, 16, 0, 0, Math.PI * 2);
-    pctx.fill();
-    pctx.globalCompositeOperation = "source-over";
-
-    const wingShadow = pctx.createLinearGradient(-34, 10, 34, 10);
-    wingShadow.addColorStop(0, "rgba(13,34,66,.95)");
-    wingShadow.addColorStop(0.5, "rgba(28,84,134,.92)");
-    wingShadow.addColorStop(1, "rgba(13,34,66,.95)");
-    pctx.fillStyle = wingShadow;
-    pctx.beginPath();
-    pctx.moveTo(-29, 14); pctx.lineTo(-11, -1); pctx.lineTo(-7, 16); pctx.lineTo(-18, 25); pctx.closePath();
-    pctx.fill();
-    pctx.beginPath();
-    pctx.moveTo(29, 14); pctx.lineTo(11, -1); pctx.lineTo(7, 16); pctx.lineTo(18, 25); pctx.closePath();
-    pctx.fill();
-
-    const wingGrad = pctx.createLinearGradient(-30, 0, 30, 0);
-    wingGrad.addColorStop(0, "#235f99");
-    wingGrad.addColorStop(0.2, "#4cb7f8");
-    wingGrad.addColorStop(0.5, "#b4f1ff");
-    wingGrad.addColorStop(0.8, "#4cb7f8");
-    wingGrad.addColorStop(1, "#235f99");
-    pctx.fillStyle = wingGrad;
-    pctx.beginPath();
-    pctx.moveTo(-27, 13); pctx.lineTo(-8, -6); pctx.lineTo(-4, 10); pctx.lineTo(-14, 19); pctx.closePath();
-    pctx.fill();
-    pctx.beginPath();
-    pctx.moveTo(27, 13); pctx.lineTo(8, -6); pctx.lineTo(4, 10); pctx.lineTo(14, 19); pctx.closePath();
-    pctx.fill();
-
-    pctx.fillStyle = "#143b63";
-    pctx.beginPath(); pctx.moveTo(-18, 18); pctx.lineTo(-6, 8); pctx.lineTo(-8, 26); pctx.lineTo(-16, 24); pctx.closePath(); pctx.fill();
-    pctx.beginPath(); pctx.moveTo(18, 18); pctx.lineTo(6, 8); pctx.lineTo(8, 26); pctx.lineTo(16, 24); pctx.closePath(); pctx.fill();
-
-    pctx.fillStyle = "#1b5a8f";
-    pctx.beginPath(); pctx.moveTo(0, -38); pctx.lineTo(7, -24); pctx.lineTo(0, -27); pctx.lineTo(-7, -24); pctx.closePath(); pctx.fill();
-
-    const hullShadow = pctx.createLinearGradient(0, -34, 0, 30);
-    hullShadow.addColorStop(0, "#10365d");
-    hullShadow.addColorStop(0.55, "#1d6fa7");
-    hullShadow.addColorStop(1, "#0d2f4a");
-    pctx.fillStyle = hullShadow;
-    pctx.beginPath();
-    pctx.moveTo(0, -36); pctx.lineTo(16, -10); pctx.lineTo(15, 21);
-    pctx.lineTo(0, 31); pctx.lineTo(-15, 21); pctx.lineTo(-16, -10); pctx.closePath();
-    pctx.fill();
-
-    const bodyG = pctx.createLinearGradient(0, -34, 0, 28);
-    bodyG.addColorStop(0, "#ffffff");
-    bodyG.addColorStop(0.18, "#ecfbff");
-    bodyG.addColorStop(0.42, "#9fe6ff");
-    bodyG.addColorStop(0.72, "#49a9e8");
-    bodyG.addColorStop(1, "#1a5f97");
-    pctx.fillStyle = bodyG;
-    pctx.beginPath();
-    pctx.moveTo(0, -33); pctx.lineTo(12.5, -10); pctx.lineTo(11.5, 18);
-    pctx.lineTo(0, 27); pctx.lineTo(-11.5, 18); pctx.lineTo(-12.5, -10); pctx.closePath();
-    pctx.fill();
-
-    const coreGlow = pctx.createLinearGradient(0, -22, 0, 22);
-    coreGlow.addColorStop(0, "rgba(255,255,255,.9)");
-    coreGlow.addColorStop(0.6, "rgba(173,232,255,.42)");
-    coreGlow.addColorStop(1, "rgba(173,232,255,0)");
-    pctx.strokeStyle = coreGlow;
-    pctx.lineWidth = 2.5;
-    pctx.beginPath(); pctx.moveTo(0, -21); pctx.lineTo(0, 17); pctx.stroke();
-
-    pctx.strokeStyle = "rgba(255,255,255,.78)";
-    pctx.lineWidth = 1.15;
-    pctx.beginPath(); pctx.moveTo(-5.5, -1); pctx.lineTo(-2, 8); pctx.lineTo(-5.5, 15); pctx.stroke();
-    pctx.beginPath(); pctx.moveTo(5.5, -1); pctx.lineTo(2, 8); pctx.lineTo(5.5, 15); pctx.stroke();
-    pctx.beginPath(); pctx.moveTo(-9, 5); pctx.lineTo(-3, 10); pctx.stroke();
-    pctx.beginPath(); pctx.moveTo(9, 5); pctx.lineTo(3, 10); pctx.stroke();
-
-    pctx.fillStyle = "#f6fcff";
-    pctx.beginPath(); pctx.moveTo(0, -39); pctx.lineTo(7.5, -18); pctx.lineTo(0, -20.5); pctx.lineTo(-7.5, -18); pctx.closePath(); pctx.fill();
-
-    const cockpitG = pctx.createLinearGradient(0, -23, 0, 2);
-    cockpitG.addColorStop(0, "#f6feff");
-    cockpitG.addColorStop(0.35, "#9fe6ff");
-    cockpitG.addColorStop(1, "#0e2239");
-    pctx.fillStyle = cockpitG;
-    pctx.beginPath(); pctx.ellipse(0, -10.5, 7, 13, 0, 0, Math.PI * 2); pctx.fill();
-
-    pctx.fillStyle = "rgba(255,255,255,.86)";
-    pctx.beginPath(); pctx.ellipse(-2, -14.5, 2.4, 5.2, -0.45, 0, Math.PI * 2); pctx.fill();
-
-    if (rainbow) {
-      const rg2 = pctx.createLinearGradient(-10, 0, 10, 0);
-      rg2.addColorStop(0, "#ff5757");
-      rg2.addColorStop(0.25, "#ffd84a");
-      rg2.addColorStop(0.5, "#42ff72");
-      rg2.addColorStop(0.75, "#4dd6ff");
-      rg2.addColorStop(1, "#b25dff");
-      pctx.strokeStyle = rg2;
-    } else {
-      pctx.strokeStyle = extraColor;
-    }
-    pctx.lineWidth = 2.1;
-    pctx.beginPath(); pctx.moveTo(-8, 2); pctx.lineTo(-2, 10); pctx.stroke();
-    pctx.beginPath(); pctx.moveTo(8, 2); pctx.lineTo(2, 10); pctx.stroke();
-
-    pctx.fillStyle = "#173a57";
-    pctx.beginPath(); pctx.moveTo(-8.5, 20); pctx.lineTo(-4, 24); pctx.lineTo(-4, 29); pctx.lineTo(-9.5, 29); pctx.closePath(); pctx.fill();
-    pctx.beginPath(); pctx.moveTo(8.5, 20); pctx.lineTo(4, 24); pctx.lineTo(4, 29); pctx.lineTo(9.5, 29); pctx.closePath(); pctx.fill();
-
-    pctx.fillStyle = "#e8f7ff";
-    pctx.fillRect(-8, 22, 5.5, 7);
-    pctx.fillRect(2.5, 22, 5.5, 7);
-
-    pctx.fillStyle = "#fff4bf";
-    pctx.beginPath(); pctx.moveTo(-5, 36); pctx.lineTo(1, 23); pctx.lineTo(-9.5, 23); pctx.closePath(); pctx.fill();
-    pctx.beginPath(); pctx.moveTo(5, 36); pctx.lineTo(9.5, 23); pctx.lineTo(-1, 23); pctx.closePath(); pctx.fill();
-    pctx.fillStyle = "#ff9a3e";
-    pctx.beginPath(); pctx.moveTo(-4.4, 31); pctx.lineTo(-2, 24); pctx.lineTo(-7.5, 24); pctx.closePath(); pctx.fill();
-    pctx.beginPath(); pctx.moveTo(4.4, 31); pctx.lineTo(7.5, 24); pctx.lineTo(2, 24); pctx.closePath(); pctx.fill();
-
-    pctx.fillStyle = "#7be5ff";
-    pctx.beginPath(); pctx.arc(-13, 10.5, 1.8, 0, Math.PI * 2); pctx.fill();
-    pctx.fillStyle = "#ff6e64";
-    pctx.beginPath(); pctx.arc(13, 10.5, 1.8, 0, Math.PI * 2); pctx.fill();
-
-    pctx.restore();
+    const aura = rainbow ? null : auraColor;
+    drawShipModel(pctx, cssW * 0.5, cssH * 0.52, 0.78, {
+      tilt: -0.08,
+      aura,
+      extraColor,
+      rainbow,
+      compact: true,
+      engineFlicker: 2.1,
+    });
   }
 
   function renderShopPreviews() {
@@ -1827,7 +1653,7 @@
     updateHUD();
     syncBGMButton();
     updateStartButton();
-    renderShopPreviews();
+    requestAnimationFrame(() => renderShopPreviews());
     loadLeaderboard();
     initFirebase();
     requestAnimationFrame(loop);
