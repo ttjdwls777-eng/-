@@ -131,21 +131,10 @@
   }
 
   let playerName = localStorage.getItem("xgp_v5_name") || "";
-  const profileId = (() => {
-    let value = localStorage.getItem("xgp_v5_profile_id") || "";
-    if (!value) {
-      value = (window.crypto && crypto.randomUUID)
-        ? crypto.randomUUID()
-        : "xgp_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
-      localStorage.setItem("xgp_v5_profile_id", value);
-    }
-    return value;
-  })();
 
   const onlineConfig = window.XGP_ONLINE_CONFIG || { enabled: false, firebaseConfig: null };
   let useFirebase = false;
   let db = null;
-  let firebaseInitPromise = null;
 
   const save = {
     starCurrency: Number(localStorage.getItem("xgp_v5_star") || 0),
@@ -370,139 +359,25 @@
     boardSection.classList.toggle("active", name === "board");
   }
 
-
-  async function ensureNicknameOwnership(name) {
-    if (!useFirebase || !db) return false;
-    const normalized = String(name || "").trim();
-    if (!normalized) return false;
-
-    const { doc, runTransaction } = db.api;
-    const key = normalized.toLowerCase();
-
-    try {
-      const result = await runTransaction(db.store, async (transaction) => {
-        const ref = doc(db.store, "xgp_nicknames", key);
-        const snap = await transaction.get(ref);
-        if (snap.exists()) {
-          const data = snap.data() || {};
-          if (data.ownerId && data.ownerId !== profileId) {
-            return false;
-          }
-        }
-        transaction.set(ref, {
-          ownerId: profileId,
-          originalName: normalized,
-          updatedAt: Date.now(),
-        });
-        return true;
-      });
-      return !!result;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  }
-
-  async function applyNicknameChange(nextName) {
-    const normalizedNext = String(nextName || "").trim();
-    const normalizedCurrent = String(playerName || "").trim();
-    if (!normalizedNext) return false;
-
-    if (!useFirebase || !db) {
-      showToast("ONLINE REQUIRED");
-      return false;
-    }
-
-    const { doc, runTransaction, deleteDoc } = db.api;
-    const nextKey = normalizedNext.toLowerCase();
-    const currentKey = normalizedCurrent.toLowerCase();
-
-    try {
-      const result = await runTransaction(db.store, async (transaction) => {
-        const nextRef = doc(db.store, "xgp_nicknames", nextKey);
-        const nextSnap = await transaction.get(nextRef);
-
-        if (nextSnap.exists()) {
-          const nextData = nextSnap.data() || {};
-          if (nextData.ownerId && nextData.ownerId !== profileId) {
-            return { ok: false, reason: "taken" };
-          }
-        }
-
-        transaction.set(nextRef, {
-          ownerId: profileId,
-          originalName: normalizedNext,
-          updatedAt: Date.now(),
-        });
-
-        if (normalizedCurrent && currentKey !== nextKey) {
-          const currentRef = doc(db.store, "xgp_nicknames", currentKey);
-          const currentSnap = await transaction.get(currentRef);
-          if (currentSnap.exists()) {
-            const currentData = currentSnap.data() || {};
-            if (!currentData.ownerId || currentData.ownerId === profileId) {
-              transaction.delete(currentRef);
-            }
-          }
-        }
-
-        return { ok: true };
-      });
-
-      if (!result || !result.ok) {
-        showToast("NAME ALREADY TAKEN");
-        return false;
-      }
-
-      playerName = normalizedNext;
-      localStorage.setItem("xgp_v5_name", playerName);
-      updateHUD();
-      showToast("NAME SAVED");
-      return true;
-    } catch (e) {
-      console.error(e);
-      showToast("ONLINE REQUIRED");
-      return false;
-    }
-  }
-
   async function initFirebase() {
-    if (useFirebase && db) return true;
-    if (firebaseInitPromise) return firebaseInitPromise;
-
-    firebaseInitPromise = (async () => {
-      if (!onlineConfig.enabled || !onlineConfig.firebaseConfig || !onlineConfig.firebaseConfig.projectId) {
-        lbMode.textContent = "Online required";
-        return false;
-      }
-      try {
-        const [{ initializeApp, getApps, getApp }, { getFirestore, doc, getDoc, setDoc, runTransaction }] = await Promise.all([
-          import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js"),
-          import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js"),
-        ]);
-        const app = getApps().length ? getApp() : initializeApp(onlineConfig.firebaseConfig);
-        db = { api: { getFirestore, doc, getDoc, setDoc, runTransaction }, store: getFirestore(app) };
-        useFirebase = true;
-        lbMode.textContent = "Online mode";
-        await loadLeaderboard();
-        return true;
-      } catch (e) {
-        console.error(e);
-        useFirebase = false;
-        db = null;
-        lbMode.textContent = "Online required";
-        return false;
-      } finally {
-        firebaseInitPromise = null;
-      }
-    })();
-
-    return firebaseInitPromise;
-  }
-
-  async function ensureOnlineReady() {
-    if (useFirebase && db) return true;
-    return await initFirebase();
+    if (!onlineConfig.enabled || !onlineConfig.firebaseConfig || !onlineConfig.firebaseConfig.projectId) {
+      lbMode.textContent = "Local mode";
+      return;
+    }
+    try {
+      const [{ initializeApp }, { getFirestore, doc, getDoc, setDoc }] = await Promise.all([
+        import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js"),
+        import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js"),
+      ]);
+      const app = initializeApp(onlineConfig.firebaseConfig);
+      db = { api: { getFirestore, doc, getDoc, setDoc }, store: getFirestore(app) };
+      useFirebase = true;
+      lbMode.textContent = "Online mode";
+      await loadLeaderboard();
+    } catch (e) {
+      console.error(e);
+      lbMode.textContent = "Local mode";
+    }
   }
 
   function spawnHazard() {
@@ -865,17 +740,17 @@
     const scale = 1 + Math.sin(now * 0.01 + s.tw) * 0.08;
     ctx.scale(scale, scale);
 
-    ctx.beginPath();
-    for (let i = 0; i < 10; i++) {
-      const ang = -Math.PI / 2 + i * Math.PI / 5;
-      const rad = i % 2 === 0 ? 14 : 6;
-      const px = Math.cos(ang) * rad;
-      const py = Math.sin(ang) * rad;
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-
     if (purple) {
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const ang = -Math.PI / 2 + i * Math.PI / 5;
+        const rad = i % 2 === 0 ? 14 : 6;
+        const px = Math.cos(ang) * rad;
+        const py = Math.sin(ang) * rad;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+
       const g = ctx.createRadialGradient(0, -3, 2, 0, 0, 18);
       g.addColorStop(0, "#f0d8ff");
       g.addColorStop(0.55, "#b25dff");
@@ -883,17 +758,126 @@
       ctx.fillStyle = g;
       ctx.shadowBlur = 18;
       ctx.shadowColor = "#a348ff";
+      ctx.fill();
     } else {
-      const g = ctx.createRadialGradient(0, -3, 2, 0, 0, 18);
-      g.addColorStop(0, "#fff8cd");
-      g.addColorStop(0.55, "#ffd84a");
-      g.addColorStop(1, "#ff9c29");
-      ctx.fillStyle = g;
+      ctx.globalCompositeOperation = "lighter";
+
+      const glow = ctx.createRadialGradient(-1, -2, 1, 0, 0, 22);
+      glow.addColorStop(0, "rgba(255,250,210,.95)");
+      glow.addColorStop(0.34, "rgba(255,216,74,.55)");
+      glow.addColorStop(1, "rgba(255,156,41,0)");
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(0, 0, 20, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalCompositeOperation = "source-over";
+      const moonG = ctx.createLinearGradient(-12, -14, 12, 14);
+      moonG.addColorStop(0, "#fff7c4");
+      moonG.addColorStop(0.45, "#ffe27a");
+      moonG.addColorStop(1, "#ffad33");
+      ctx.fillStyle = moonG;
       ctx.shadowBlur = 16;
       ctx.shadowColor = "#ffd84a";
+      ctx.beginPath();
+      ctx.arc(-1, 0, 12, -Math.PI * 0.95, Math.PI * 0.95, false);
+      ctx.arc(5, -1, 10, Math.PI * 0.92, -Math.PI * 0.92, true);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = "rgba(255,250,223,.82)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(-2, 0, 11, -Math.PI * 0.78, Math.PI * 0.55, false);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255,248,214,.7)";
+      ctx.beginPath();
+      ctx.arc(-8, -3, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(-4, 6, 1.2, 0, Math.PI * 2);
+      ctx.fill();
     }
-    ctx.fill();
+
     ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  function drawMagnetField(now) {
+    const pulse = 1 + Math.sin(now * 0.012) * 0.04;
+    const baseR = 170 * pulse;
+
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+
+    const glow = ctx.createRadialGradient(player.x, player.y, player.r + 4, player.x, player.y, baseR + 42);
+    glow.addColorStop(0, "rgba(255,240,160,.12)");
+    glow.addColorStop(0.36, "rgba(255,216,74,.10)");
+    glow.addColorStop(0.72, "rgba(255,178,64,.05)");
+    glow.addColorStop(1, "rgba(255,178,64,0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, baseR + 42, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.lineCap = "round";
+
+    for (let i = 0; i < 3; i++) {
+      const ringR = baseR - i * 18 + Math.sin(now * 0.01 + i * 1.7) * 5;
+      ctx.strokeStyle = i === 0
+        ? "rgba(255,234,150,.34)"
+        : i === 1
+        ? "rgba(255,196,86,.24)"
+        : "rgba(255,154,68,.18)";
+      ctx.lineWidth = 3 - i * 0.6;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, ringR, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    for (let i = 0; i < 6; i++) {
+      const a = now * 0.0026 + i * (Math.PI / 3);
+      const startR = player.r + 16 + Math.sin(now * 0.01 + i) * 3;
+      const endR = baseR - 16 + Math.cos(now * 0.009 + i) * 6;
+      const c1r = startR + (endR - startR) * 0.34;
+      const c2r = startR + (endR - startR) * 0.72;
+
+      const sx = player.x + Math.cos(a) * startR;
+      const sy = player.y + Math.sin(a) * startR;
+      const c1x = player.x + Math.cos(a + 0.42) * c1r;
+      const c1y = player.y + Math.sin(a + 0.42) * c1r;
+      const c2x = player.x + Math.cos(a - 0.36) * c2r;
+      const c2y = player.y + Math.sin(a - 0.36) * c2r;
+      const ex = player.x + Math.cos(a + 0.14) * endR;
+      const ey = player.y + Math.sin(a + 0.14) * endR;
+
+      ctx.strokeStyle = i % 2 === 0
+        ? "rgba(255,222,120,.42)"
+        : "rgba(255,170,84,.26)";
+      ctx.lineWidth = i % 2 === 0 ? 2.4 : 1.7;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.bezierCurveTo(c1x, c1y, c2x, c2y, ex, ey);
+      ctx.stroke();
+    }
+
+    for (let i = 0; i < 10; i++) {
+      const a = now * 0.0038 + i * (Math.PI * 2 / 10);
+      const orbR = baseR - 10 + Math.sin(now * 0.01 + i) * 8;
+      const ox = player.x + Math.cos(a) * orbR;
+      const oy = player.y + Math.sin(a) * orbR;
+      const orb = ctx.createRadialGradient(ox, oy, 0.5, ox, oy, 8);
+      orb.addColorStop(0, "rgba(255,248,205,.9)");
+      orb.addColorStop(0.45, "rgba(255,208,98,.45)");
+      orb.addColorStop(1, "rgba(255,208,98,0)");
+      ctx.fillStyle = orb;
+      ctx.beginPath();
+      ctx.arc(ox, oy, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
     ctx.restore();
   }
 
@@ -1404,14 +1388,7 @@
     }
 
     if (magnetTimer > 0) {
-      ctx.save();
-      ctx.strokeStyle = "rgba(255,216,74,.35)";
-      ctx.setLineDash([6, 5]);
-      ctx.beginPath();
-      ctx.arc(player.x, player.y, 170, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-      ctx.setLineDash([]);
+      drawMagnetField(now);
     }
 
     drawPopups(dt);
@@ -1463,14 +1440,8 @@
   });
 
 
-  async function startRun() {
+  function startRun() {
     ensureAudio();
-
-    const onlineReady = await ensureOnlineReady();
-    if (!onlineReady) {
-      showToast("ONLINE REQUIRED");
-      return;
-    }
 
     if (runSessionActive && !running) {
       menuOverlay.style.display = "none";
@@ -1523,13 +1494,10 @@
 
   nameMenuBtn.addEventListener("click", async () => {
     ensureAudio();
-    const onlineReady = await ensureOnlineReady();
-    if (!onlineReady) {
-      showToast("ONLINE REQUIRED");
-      return;
-    }
-    const nextName = await openNicknameModal(playerName);
-    await applyNicknameChange(nextName);
+    playerName = await openNicknameModal(playerName);
+    localStorage.setItem("xgp_v5_name", playerName);
+    updateHUD();
+    showToast("NAME SAVED");
   });
 
   tabPlay.addEventListener("click", () => switchTab("play"));
@@ -1542,42 +1510,16 @@
 
   (async () => {
     if (menuBtn) menuBtn.textContent = "PAUSE";
-    const onlineReady = await initFirebase();
-    if (!onlineReady) {
-      updateHUD();
-      syncBGMButton();
-      updateStartButton();
-      renderShopPreviews();
-      loadLeaderboard();
-      requestAnimationFrame(loop);
-      return;
-    }
-
     if (!playerName) {
-      let saved = false;
-      while (!saved) {
-        const firstName = await openNicknameModal("");
-        saved = await applyNicknameChange(firstName);
-      }
-    } else {
-      const ok = await ensureNicknameOwnership(playerName);
-      if (!ok) {
-        playerName = "";
-        localStorage.removeItem("xgp_v5_name");
-        updateHUD();
-        let saved = false;
-        while (!saved) {
-          const firstName = await openNicknameModal("");
-          saved = await applyNicknameChange(firstName);
-        }
-      }
+      playerName = await openNicknameModal("");
+      localStorage.setItem("xgp_v5_name", playerName);
     }
-
     updateHUD();
     syncBGMButton();
     updateStartButton();
     renderShopPreviews();
     loadLeaderboard();
+    initFirebase();
     requestAnimationFrame(loop);
   })();
 })();
