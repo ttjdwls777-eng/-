@@ -521,81 +521,192 @@
     const tilt = clamp(player.moveX * 0.24, -0.35, 0.35);
     ctx.rotate(tilt);
 
-    // outer shadow glow
-    ctx.fillStyle = "rgba(92,206,255,.18)";
+    const hoverGlow = ctx.createRadialGradient(0, 14, 4, 0, 14, 40);
+    hoverGlow.addColorStop(0, "rgba(95,214,255,.34)");
+    hoverGlow.addColorStop(0.38, "rgba(69,156,255,.14)");
+    hoverGlow.addColorStop(1, "rgba(69,156,255,0)");
+    ctx.fillStyle = hoverGlow;
     ctx.beginPath();
-    ctx.ellipse(0, 12, 32, 14, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 15, 38, 17, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // rear wing plates
-    const wingGrad = ctx.createLinearGradient(-28, 0, 28, 0);
-    wingGrad.addColorStop(0, "#2d90cd");
-    wingGrad.addColorStop(0.5, "#6dd5ff");
-    wingGrad.addColorStop(1, "#2d90cd");
+    ctx.fillStyle = "rgba(5,18,35,.46)";
+    ctx.beginPath(); ctx.moveTo(-38, 18); ctx.lineTo(-11, 2); ctx.lineTo(-10, 20); ctx.lineTo(-26, 26); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(38, 18); ctx.lineTo(11, 2); ctx.lineTo(10, 20); ctx.lineTo(26, 26); ctx.closePath(); ctx.fill();
+
+    const wingGrad = ctx.createLinearGradient(-36, 0, 36, 0);
+    wingGrad.addColorStop(0, "#165a96");
+    wingGrad.addColorStop(0.22, "#4eb5ea");
+    wingGrad.addColorStop(0.5, "#bff3ff");
+    wingGrad.addColorStop(0.78, "#4eb5ea");
+    wingGrad.addColorStop(1, "#165a96");
     ctx.fillStyle = wingGrad;
-    ctx.beginPath(); ctx.moveTo(-34, 16); ctx.lineTo(-7, -1); ctx.lineTo(-6, 18); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(34, 16); ctx.lineTo(7, -1); ctx.lineTo(6, 18); ctx.closePath(); ctx.fill();
-
-    // side fins
-    ctx.fillStyle = "#275e92";
-    ctx.beginPath(); ctx.moveTo(-18, 20); ctx.lineTo(-6, 9); ctx.lineTo(-8, 26); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(18, 20); ctx.lineTo(6, 9); ctx.lineTo(8, 26); ctx.closePath(); ctx.fill();
-
-    // main hull
-    const bodyG = ctx.createLinearGradient(0, -34, 0, 30);
-    bodyG.addColorStop(0, "#ffffff");
-    bodyG.addColorStop(0.28, "#b9f0ff");
-    bodyG.addColorStop(0.58, "#67c6f7");
-    bodyG.addColorStop(1, "#1d6fa7");
-    ctx.fillStyle = bodyG;
     ctx.beginPath();
-    ctx.moveTo(0, -36);
-    ctx.lineTo(16, -8);
-    ctx.lineTo(14, 22);
-    ctx.lineTo(0, 31);
-    ctx.lineTo(-14, 22);
-    ctx.lineTo(-16, -8);
+    ctx.moveTo(-39, 17);
+    ctx.lineTo(-13, -1);
+    ctx.lineTo(-3, 6);
+    ctx.lineTo(-8, 22);
+    ctx.lineTo(-28, 27);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(39, 17);
+    ctx.lineTo(13, -1);
+    ctx.lineTo(3, 6);
+    ctx.lineTo(8, 22);
+    ctx.lineTo(28, 27);
     ctx.closePath();
     ctx.fill();
 
-    // top highlights
-    ctx.strokeStyle = "rgba(255,255,255,.88)";
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(0, -24); ctx.lineTo(0, 18); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-8, 2); ctx.lineTo(-2, 10); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(8, 2); ctx.lineTo(2, 10); ctx.stroke();
+    ctx.strokeStyle = "rgba(232,250,255,.82)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(-28, 16); ctx.lineTo(-10, 5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(28, 16); ctx.lineTo(10, 5); ctx.stroke();
 
-    // nose
-    ctx.fillStyle = "#f3fbff";
-    ctx.beginPath(); ctx.moveTo(0, -40); ctx.lineTo(8, -18); ctx.lineTo(-8, -18); ctx.closePath(); ctx.fill();
+    const finGrad = ctx.createLinearGradient(0, 0, 0, 26);
+    finGrad.addColorStop(0, "#7ee8ff");
+    finGrad.addColorStop(1, "#19558a");
+    ctx.fillStyle = finGrad;
+    ctx.beginPath(); ctx.moveTo(-18, 22); ctx.lineTo(-6, 8); ctx.lineTo(-8, 31); ctx.lineTo(-19, 27); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(18, 22); ctx.lineTo(6, 8); ctx.lineTo(8, 31); ctx.lineTo(19, 27); ctx.closePath(); ctx.fill();
 
-    // cockpit
-    const cockpitG = ctx.createLinearGradient(0, -22, 0, 0);
-    cockpitG.addColorStop(0, "#eefcff");
-    cockpitG.addColorStop(1, "#10253e");
-    ctx.fillStyle = cockpitG;
-    ctx.beginPath(); ctx.ellipse(0, -10, 7, 13, 0, 0, Math.PI * 2); ctx.fill();
+    const bodyOuter = ctx.createLinearGradient(0, -44, 0, 33);
+    bodyOuter.addColorStop(0, "#fbfeff");
+    bodyOuter.addColorStop(0.18, "#d8f7ff");
+    bodyOuter.addColorStop(0.42, "#82d6ff");
+    bodyOuter.addColorStop(0.7, "#2d8fca");
+    bodyOuter.addColorStop(1, "#104574");
+    ctx.fillStyle = bodyOuter;
+    ctx.beginPath();
+    ctx.moveTo(0, -45);
+    ctx.bezierCurveTo(10, -34, 18, -18, 19, 4);
+    ctx.lineTo(16, 24);
+    ctx.lineTo(6, 34);
+    ctx.lineTo(-6, 34);
+    ctx.lineTo(-16, 24);
+    ctx.lineTo(-19, 4);
+    ctx.bezierCurveTo(-18, -18, -10, -34, 0, -45);
+    ctx.closePath();
+    ctx.fill();
 
-    // engine blocks
-    ctx.fillStyle = "#e8f7ff";
-    ctx.fillRect(-8, 22, 6, 7);
-    ctx.fillRect(2, 22, 6, 7);
+    const bodyInner = ctx.createLinearGradient(0, -34, 0, 27);
+    bodyInner.addColorStop(0, "#ffffff");
+    bodyInner.addColorStop(0.25, "#f5fcff");
+    bodyInner.addColorStop(0.55, "#9be6ff");
+    bodyInner.addColorStop(1, "#2a7bb2");
+    ctx.fillStyle = bodyInner;
+    ctx.beginPath();
+    ctx.moveTo(0, -36);
+    ctx.bezierCurveTo(7, -28, 12, -15, 13, 5);
+    ctx.lineTo(11, 20);
+    ctx.lineTo(3, 28);
+    ctx.lineTo(-3, 28);
+    ctx.lineTo(-11, 20);
+    ctx.lineTo(-13, 5);
+    ctx.bezierCurveTo(-12, -15, -7, -28, 0, -36);
+    ctx.closePath();
+    ctx.fill();
 
-    // engine flames
-    const flick = Math.sin(performance.now() * 0.05) * 5;
-    ctx.fillStyle = "#fff4bf";
-    ctx.beginPath(); ctx.moveTo(-5.2, 38 + flick); ctx.lineTo(1, 23); ctx.lineTo(-10, 23); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(5.2, 38 + flick); ctx.lineTo(10, 23); ctx.lineTo(-1, 23); ctx.closePath(); ctx.fill();
+    const noseGrad = ctx.createLinearGradient(0, -48, 0, -16);
+    noseGrad.addColorStop(0, "#ffffff");
+    noseGrad.addColorStop(0.42, "#d7f6ff");
+    noseGrad.addColorStop(1, "#74cfff");
+    ctx.fillStyle = noseGrad;
+    ctx.beginPath();
+    ctx.moveTo(0, -49);
+    ctx.lineTo(9, -20);
+    ctx.lineTo(0, -24);
+    ctx.lineTo(-9, -20);
+    ctx.closePath();
+    ctx.fill();
 
-    ctx.fillStyle = "#ff9a3e";
-    ctx.beginPath(); ctx.moveTo(-5, 33 + flick * 0.7); ctx.lineTo(-2, 24); ctx.lineTo(-8, 24); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(5, 33 + flick * 0.7); ctx.lineTo(8, 24); ctx.lineTo(2, 24); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,.92)";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(0, -31);
+    ctx.lineTo(0, 23);
+    ctx.stroke();
 
-    // tiny side lights
+    ctx.fillStyle = "#dff8ff";
+    ctx.beginPath();
+    ctx.ellipse(0, -11, 8.4, 15.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const canopy = ctx.createLinearGradient(0, -25, 0, 3);
+    canopy.addColorStop(0, "#f7fdff");
+    canopy.addColorStop(0.18, "#8ee7ff");
+    canopy.addColorStop(0.58, "#2b6ca9");
+    canopy.addColorStop(1, "#0d2340");
+    ctx.fillStyle = canopy;
+    ctx.beginPath();
+    ctx.ellipse(0, -10, 6.6, 13, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(255,255,255,.7)";
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(-3.3, -17.5);
+    ctx.lineTo(-0.8, -7);
+    ctx.stroke();
+
+    const intakeGrad = ctx.createLinearGradient(-10, 0, 10, 0);
+    intakeGrad.addColorStop(0, "#153552");
+    intakeGrad.addColorStop(0.5, "#0a1727");
+    intakeGrad.addColorStop(1, "#153552");
+    ctx.fillStyle = intakeGrad;
+    ctx.beginPath(); ctx.moveTo(-15, 2); ctx.lineTo(-8, -1); ctx.lineTo(-7, 12); ctx.lineTo(-14, 10); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(15, 2); ctx.lineTo(8, -1); ctx.lineTo(7, 12); ctx.lineTo(14, 10); ctx.closePath(); ctx.fill();
+
+    ctx.strokeStyle = "rgba(12,65,103,.55)";
+    ctx.lineWidth = 1.1;
+    ctx.beginPath(); ctx.moveTo(-10, 4); ctx.lineTo(-3, 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(10, 4); ctx.lineTo(3, 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-7, 19); ctx.lineTo(-1, 25); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(7, 19); ctx.lineTo(1, 25); ctx.stroke();
+
+    const engineGrad = ctx.createLinearGradient(0, 20, 0, 34);
+    engineGrad.addColorStop(0, "#f4fcff");
+    engineGrad.addColorStop(0.35, "#b9edff");
+    engineGrad.addColorStop(1, "#2a78b0");
+    ctx.fillStyle = engineGrad;
+    ctx.beginPath();
+    ctx.moveTo(-10.5, 24);
+    ctx.lineTo(-10.5, 30);
+    ctx.lineTo(-2.5, 30);
+    ctx.lineTo(-2.5, 24);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(2.5, 24);
+    ctx.lineTo(2.5, 30);
+    ctx.lineTo(10.5, 30);
+    ctx.lineTo(10.5, 24);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#b4f5ff";
+    ctx.beginPath(); ctx.arc(-6.5, 27.3, 2.1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(6.5, 27.3, 2.1, 0, Math.PI * 2); ctx.fill();
+
+    const flick = Math.sin(performance.now() * 0.045) * 5.5;
+    ctx.fillStyle = "rgba(180,255,255,.9)";
+    ctx.beginPath(); ctx.moveTo(-6.6, 39 + flick); ctx.lineTo(-2.2, 24); ctx.lineTo(-11, 24); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(6.6, 39 + flick); ctx.lineTo(11, 24); ctx.lineTo(2.2, 24); ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = "#fff1b0";
+    ctx.beginPath(); ctx.moveTo(-6.4, 35 + flick * 0.78); ctx.lineTo(-3.1, 24); ctx.lineTo(-9.7, 24); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(6.4, 35 + flick * 0.78); ctx.lineTo(9.7, 24); ctx.lineTo(3.1, 24); ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = "#ff9830";
+    ctx.beginPath(); ctx.moveTo(-6.1, 31 + flick * 0.5); ctx.lineTo(-4.2, 24); ctx.lineTo(-8.1, 24); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(6.1, 31 + flick * 0.5); ctx.lineTo(8.1, 24); ctx.lineTo(4.2, 24); ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = "#7ef4ff";
+    ctx.beginPath(); ctx.arc(0, -35.5, 2, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#ffd84a";
-    ctx.beginPath(); ctx.arc(-15, 10, 2, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#ff5757";
-    ctx.beginPath(); ctx.arc(15, 10, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-20, 11, 2.1, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#ff5d72";
+    ctx.beginPath(); ctx.arc(20, 11, 2.1, 0, Math.PI * 2); ctx.fill();
 
     ctx.restore();
   }
@@ -760,56 +871,55 @@
       ctx.shadowColor = "#a348ff";
       ctx.fill();
     } else {
-      ctx.rotate(-0.55);
-
       ctx.globalCompositeOperation = "lighter";
-      const glow = ctx.createRadialGradient(-7, -1, 1, -2, 0, 27);
-      glow.addColorStop(0, "rgba(255,250,210,.98)");
-      glow.addColorStop(0.22, "rgba(255,235,150,.78)");
-      glow.addColorStop(0.48, "rgba(255,212,82,.38)");
-      glow.addColorStop(1, "rgba(255,176,48,0)");
+
+      const glow = ctx.createRadialGradient(-2, -2, 1, 0, 0, 24);
+      glow.addColorStop(0, "rgba(255,252,228,.96)");
+      glow.addColorStop(0.28, "rgba(255,230,130,.65)");
+      glow.addColorStop(0.65, "rgba(255,183,68,.22)");
+      glow.addColorStop(1, "rgba(255,156,41,0)");
       ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.ellipse(-3, 1, 22, 22, 0, 0, Math.PI * 2);
+      ctx.arc(0, 0, 22, 0, Math.PI * 2);
       ctx.fill();
+
       ctx.globalCompositeOperation = "source-over";
+      ctx.rotate(-0.32);
 
-      const moonG = ctx.createLinearGradient(-20, -18, 10, 18);
-      moonG.addColorStop(0, "#fff9d7");
-      moonG.addColorStop(0.3, "#ffe680");
-      moonG.addColorStop(0.72, "#ffd200");
-      moonG.addColorStop(1, "#f0b900");
+      const outerR = 14;
+      const innerR = 13.5;
+      const innerOffsetX = 8.4;
+      const innerOffsetY = 0;
 
+      const moonG = ctx.createLinearGradient(-16, -16, 14, 14);
+      moonG.addColorStop(0, "#fffde7");
+      moonG.addColorStop(0.32, "#fff2a8");
+      moonG.addColorStop(0.72, "#ffd05f");
+      moonG.addColorStop(1, "#ff9f2f");
       ctx.fillStyle = moonG;
       ctx.shadowBlur = 18;
       ctx.shadowColor = "#ffd84a";
+
       ctx.beginPath();
-      ctx.moveTo(7.8, -15.2);
-      ctx.bezierCurveTo(-5.8, -17.0, -16.2, -7.0, -16.0, 4.8);
-      ctx.bezierCurveTo(-15.7, 16.2, -7.2, 21.6, 5.3, 18.2);
-      ctx.bezierCurveTo(-0.6, 17.2, -5.0, 13.8, -6.5, 8.5);
-      ctx.bezierCurveTo(-8.5, 1.6, -6.8, -6.4, -2.2, -11.8);
-      ctx.bezierCurveTo(0.5, -14.9, 3.6, -16.0, 7.8, -15.2);
+      ctx.arc(0, 0, outerR, 0, Math.PI * 2, false);
+      ctx.arc(innerOffsetX, innerOffsetY, innerR, 0, Math.PI * 2, true);
       ctx.closePath();
-      ctx.fill();
+      ctx.fill("evenodd");
 
       ctx.shadowBlur = 0;
-
-      ctx.fillStyle = "rgba(225,178,0,.72)";
+      ctx.strokeStyle = "rgba(255,252,232,.95)";
+      ctx.lineWidth = 1.6;
       ctx.beginPath();
-      ctx.moveTo(4.1, 17.2);
-      ctx.bezierCurveTo(-6.2, 19.6, -12.0, 14.7, -13.2, 4.8);
-      ctx.bezierCurveTo(-12.0, 12.6, -6.0, 17.6, 2.6, 18.0);
-      ctx.bezierCurveTo(3.4, 17.9, 3.9, 17.7, 4.1, 17.2);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.strokeStyle = "rgba(255,252,236,.95)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(5.8, -13.2);
-      ctx.bezierCurveTo(-4.2, -14.5, -11.6, -6.9, -11.7, 3.2);
+      ctx.arc(-1.8, -0.4, outerR - 2.4, Math.PI * 0.72, Math.PI * 1.27, true);
       ctx.stroke();
+
+      ctx.fillStyle = "rgba(255,250,224,.82)";
+      ctx.beginPath();
+      ctx.arc(-7.5, -3.8, 1.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(-5.2, 4.8, 1.05, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     ctx.shadowBlur = 0;
