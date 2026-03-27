@@ -760,55 +760,56 @@
       ctx.shadowColor = "#a348ff";
       ctx.fill();
     } else {
-      ctx.rotate(-0.34);
+      ctx.rotate(-0.55);
 
       ctx.globalCompositeOperation = "lighter";
-      const glow = ctx.createRadialGradient(-6, -2, 1, 0, 0, 28);
-      glow.addColorStop(0, "rgba(255,252,228,.98)");
-      glow.addColorStop(0.16, "rgba(255,244,182,.84)");
-      glow.addColorStop(0.4, "rgba(255,216,96,.46)");
-      glow.addColorStop(0.72, "rgba(255,171,58,.18)");
-      glow.addColorStop(1, "rgba(255,156,41,0)");
+      const glow = ctx.createRadialGradient(-7, -1, 1, -2, 0, 27);
+      glow.addColorStop(0, "rgba(255,250,210,.98)");
+      glow.addColorStop(0.22, "rgba(255,235,150,.78)");
+      glow.addColorStop(0.48, "rgba(255,212,82,.38)");
+      glow.addColorStop(1, "rgba(255,176,48,0)");
       ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.ellipse(-4.2, 0, 22, 24, 0, 0, Math.PI * 2);
+      ctx.ellipse(-3, 1, 22, 22, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.globalCompositeOperation = "source-over";
 
-      const outerR = 14.8;
-      const innerR = 13.8;
-      const innerX = 9.1;
-      const innerY = -0.15;
-
-      const moonG = ctx.createLinearGradient(-18, -18, 14, 16);
-      moonG.addColorStop(0, "#fffef3");
-      moonG.addColorStop(0.24, "#fff7c8");
-      moonG.addColorStop(0.62, "#ffd768");
-      moonG.addColorStop(1, "#ffab34");
+      const moonG = ctx.createLinearGradient(-20, -18, 10, 18);
+      moonG.addColorStop(0, "#fff9d7");
+      moonG.addColorStop(0.3, "#ffe680");
+      moonG.addColorStop(0.72, "#ffd200");
+      moonG.addColorStop(1, "#f0b900");
 
       ctx.fillStyle = moonG;
-      ctx.shadowBlur = 20;
+      ctx.shadowBlur = 18;
       ctx.shadowColor = "#ffd84a";
       ctx.beginPath();
-      ctx.arc(0, 0, outerR, Math.PI * 0.86, Math.PI * 1.14, false);
-      ctx.arc(innerX, innerY, innerR, Math.PI * 1.10, Math.PI * 0.90, true);
+      ctx.moveTo(7.8, -15.2);
+      ctx.bezierCurveTo(-5.8, -17.0, -16.2, -7.0, -16.0, 4.8);
+      ctx.bezierCurveTo(-15.7, 16.2, -7.2, 21.6, 5.3, 18.2);
+      ctx.bezierCurveTo(-0.6, 17.2, -5.0, 13.8, -6.5, 8.5);
+      ctx.bezierCurveTo(-8.5, 1.6, -6.8, -6.4, -2.2, -11.8);
+      ctx.bezierCurveTo(0.5, -14.9, 3.6, -16.0, 7.8, -15.2);
       ctx.closePath();
       ctx.fill();
 
       ctx.shadowBlur = 0;
-      ctx.strokeStyle = "rgba(255,252,236,.96)";
-      ctx.lineWidth = 1.75;
-      ctx.beginPath();
-      ctx.arc(-1.9, 0.05, outerR - 1.9, Math.PI * 0.72, Math.PI * 1.28, true);
-      ctx.stroke();
 
-      ctx.fillStyle = "rgba(255,250,224,.9)";
+      ctx.fillStyle = "rgba(225,178,0,.72)";
       ctx.beginPath();
-      ctx.arc(-7.6, -3.5, 1.18, 0, Math.PI * 2);
+      ctx.moveTo(4.1, 17.2);
+      ctx.bezierCurveTo(-6.2, 19.6, -12.0, 14.7, -13.2, 4.8);
+      ctx.bezierCurveTo(-12.0, 12.6, -6.0, 17.6, 2.6, 18.0);
+      ctx.bezierCurveTo(3.4, 17.9, 3.9, 17.7, 4.1, 17.2);
+      ctx.closePath();
       ctx.fill();
+
+      ctx.strokeStyle = "rgba(255,252,236,.95)";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(-5.8, 4.5, 0.92, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.moveTo(5.8, -13.2);
+      ctx.bezierCurveTo(-4.2, -14.5, -11.6, -6.9, -11.7, 3.2);
+      ctx.stroke();
     }
 
     ctx.shadowBlur = 0;
