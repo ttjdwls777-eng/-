@@ -518,16 +518,18 @@
     c.rotate(tilt);
     c.scale(scale, scale);
 
-    const wingSpan = compact ? 30 : 34;
-    const bodyLen = compact ? 43 : 49;
-    const bodyWidth = compact ? 11.5 : 13;
-    const tailY = compact ? 28 : 31;
-    const flameY = compact ? 41 : 45;
+    const wingSpan = compact ? 28 : 31;
+    const bodyLen = compact ? 45 : 50;
+    const bodyHalf = compact ? 8.6 : 9.6;
+    const flare = compact ? 16.8 : 18.6;
+    const tailY = compact ? 27 : 30;
+    const engineY = compact ? 21.5 : 24;
+    const flameY = compact ? 41 : 46;
 
     if (aura) {
       c.save();
       c.globalCompositeOperation = "lighter";
-      const ag = c.createRadialGradient(0, 8, 5, 0, 8, compact ? 40 : 46);
+      const ag = c.createRadialGradient(0, 8, 5, 0, 8, compact ? 42 : 48);
       if (rainbow) {
         ag.addColorStop(0, "rgba(255,87,87,.82)");
         ag.addColorStop(0.2, "rgba(255,216,74,.70)");
@@ -536,17 +538,15 @@
         ag.addColorStop(1, "rgba(178,93,255,0)");
       } else {
         ag.addColorStop(0, aura + "cc");
-        ag.addColorStop(0.42, aura + "4d");
+        ag.addColorStop(0.42, aura + "50");
         ag.addColorStop(1, aura + "00");
       }
       c.fillStyle = ag;
       c.beginPath();
-      c.ellipse(0, 7, compact ? 30 : 34, compact ? 31 : 35, 0, 0, Math.PI * 2);
+      c.ellipse(0, 8, compact ? 27 : 31, compact ? 31 : 35, 0, 0, Math.PI * 2);
       c.fill();
 
-      const ringStroke = rainbow
-        ? c.createLinearGradient(-28, 0, 28, 0)
-        : null;
+      const ringStroke = rainbow ? c.createLinearGradient(-30, 0, 30, 0) : null;
       if (ringStroke) {
         ringStroke.addColorStop(0, "#ff5757");
         ringStroke.addColorStop(0.24, "#ffd84a");
@@ -559,172 +559,232 @@
       }
       c.lineWidth = compact ? 1.8 : 2.2;
       c.beginPath();
-      c.ellipse(0, 9, compact ? 22 : 25, compact ? 30 : 34, 0, 0, Math.PI * 2);
+      c.ellipse(0, 9, compact ? 21 : 24, compact ? 29 : 33, 0, 0, Math.PI * 2);
       c.stroke();
       c.restore();
     }
 
     c.save();
     c.globalCompositeOperation = "lighter";
-    const underGlow = c.createRadialGradient(0, 15, 6, 0, 15, compact ? 32 : 36);
-    underGlow.addColorStop(0, "rgba(132,240,255,.34)");
-    underGlow.addColorStop(0.45, "rgba(86,188,255,.18)");
-    underGlow.addColorStop(1, "rgba(86,188,255,0)");
+    const underGlow = c.createRadialGradient(0, 14, 4, 0, 14, compact ? 34 : 38);
+    underGlow.addColorStop(0, "rgba(155,244,255,.34)");
+    underGlow.addColorStop(0.45, "rgba(91,184,255,.18)");
+    underGlow.addColorStop(1, "rgba(91,184,255,0)");
     c.fillStyle = underGlow;
     c.beginPath();
-    c.ellipse(0, 15, compact ? 20 : 23, compact ? 24 : 27, 0, 0, Math.PI * 2);
+    c.ellipse(0, 14, compact ? 18 : 21, compact ? 25 : 28, 0, 0, Math.PI * 2);
     c.fill();
     c.restore();
 
-    const sidePanel = c.createLinearGradient(-wingSpan, 4, wingSpan, 4);
-    sidePanel.addColorStop(0, "#0d2441");
-    sidePanel.addColorStop(0.5, "#183c66");
-    sidePanel.addColorStop(1, "#0d2441");
-    c.fillStyle = sidePanel;
+    c.save();
+    c.globalCompositeOperation = "lighter";
+    const rimGlow = c.createLinearGradient(0, -bodyLen, 0, tailY + 8);
+    rimGlow.addColorStop(0, "rgba(255,255,255,.65)");
+    rimGlow.addColorStop(0.4, "rgba(125,235,255,.32)");
+    rimGlow.addColorStop(1, "rgba(125,235,255,0)");
+    c.strokeStyle = rimGlow;
+    c.lineWidth = compact ? 1.5 : 1.8;
     c.beginPath();
-    c.moveTo(-wingSpan, 11); c.lineTo(-14, -2); c.lineTo(-8, 13); c.lineTo(-19, 26); c.lineTo(-27, 22); c.closePath();
-    c.fill();
-    c.beginPath();
-    c.moveTo(wingSpan, 11); c.lineTo(14, -2); c.lineTo(8, 13); c.lineTo(19, 26); c.lineTo(27, 22); c.closePath();
-    c.fill();
+    c.moveTo(0, -bodyLen + 2);
+    c.lineTo(9, -22);
+    c.lineTo(6, tailY - 5);
+    c.lineTo(0, tailY + 6);
+    c.lineTo(-6, tailY - 5);
+    c.lineTo(-9, -22);
+    c.closePath();
+    c.stroke();
+    c.restore();
 
-    const wingGrad = c.createLinearGradient(-wingSpan, 0, wingSpan, 0);
-    wingGrad.addColorStop(0, "#0c2f57");
-    wingGrad.addColorStop(0.18, "#1a5f97");
-    wingGrad.addColorStop(0.5, "#d3fbff");
-    wingGrad.addColorStop(0.82, "#2f8fd3");
-    wingGrad.addColorStop(1, "#0c2f57");
-    c.fillStyle = wingGrad;
+    const outerWing = c.createLinearGradient(-wingSpan, 0, wingSpan, 0);
+    outerWing.addColorStop(0, "#061325");
+    outerWing.addColorStop(0.2, "#153759");
+    outerWing.addColorStop(0.5, "#8edfff");
+    outerWing.addColorStop(0.8, "#153759");
+    outerWing.addColorStop(1, "#061325");
+    c.fillStyle = outerWing;
     c.beginPath();
-    c.moveTo(-wingSpan + 2, 9); c.lineTo(-12, -13); c.lineTo(-3, 6); c.lineTo(-13, 17); c.lineTo(-25, 18); c.closePath();
+    c.moveTo(-wingSpan, 8);
+    c.lineTo(-9.5, -10.5);
+    c.lineTo(-5.2, 5.8);
+    c.lineTo(-18.8, 21.8);
+    c.lineTo(-27.5, 19.2);
+    c.closePath();
     c.fill();
     c.beginPath();
-    c.moveTo(wingSpan - 2, 9); c.lineTo(12, -13); c.lineTo(3, 6); c.lineTo(13, 17); c.lineTo(25, 18); c.closePath();
-    c.fill();
-
-    c.fillStyle = "rgba(7,24,42,.94)";
-    c.beginPath();
-    c.moveTo(-24, 8); c.lineTo(-15, 0); c.lineTo(-10, 8); c.lineTo(-18, 13); c.closePath();
-    c.fill();
-    c.beginPath();
-    c.moveTo(24, 8); c.lineTo(15, 0); c.lineTo(10, 8); c.lineTo(18, 13); c.closePath();
-    c.fill();
-
-    c.strokeStyle = "rgba(185,241,255,.52)";
-    c.lineWidth = 1.1;
-    c.beginPath(); c.moveTo(-26, 15); c.lineTo(-11, -4); c.lineTo(-7, 8); c.stroke();
-    c.beginPath(); c.moveTo(26, 15); c.lineTo(11, -4); c.lineTo(7, 8); c.stroke();
-
-    c.fillStyle = "#113659";
-    c.beginPath();
-    c.moveTo(0, -bodyLen); c.lineTo(8, -29); c.lineTo(0, -33); c.lineTo(-8, -29); c.closePath();
-    c.fill();
-
-    const noseGrad = c.createLinearGradient(0, -bodyLen, 0, -20);
-    noseGrad.addColorStop(0, "#fbffff");
-    noseGrad.addColorStop(0.42, "#93ebff");
-    noseGrad.addColorStop(1, "#1b5f97");
-    c.fillStyle = noseGrad;
-    c.beginPath();
-    c.moveTo(0, -bodyLen); c.lineTo(6.3, -29); c.lineTo(0, -34); c.lineTo(-6.3, -29); c.closePath();
-    c.fill();
-
-    const hullShadow = c.createLinearGradient(0, -38, 0, 35);
-    hullShadow.addColorStop(0, "#0a223c");
-    hullShadow.addColorStop(0.56, "#103659");
-    hullShadow.addColorStop(1, "#09182a");
-    c.fillStyle = hullShadow;
-    c.beginPath();
-    c.moveTo(0, -39);
-    c.lineTo(bodyWidth + 2.4, -16);
-    c.lineTo(bodyWidth + 1.6, 17);
-    c.lineTo(7.4, tailY);
-    c.lineTo(0, 35);
-    c.lineTo(-7.4, tailY);
-    c.lineTo(-bodyWidth - 1.6, 17);
-    c.lineTo(-bodyWidth - 2.4, -16);
+    c.moveTo(wingSpan, 8);
+    c.lineTo(9.5, -10.5);
+    c.lineTo(5.2, 5.8);
+    c.lineTo(18.8, 21.8);
+    c.lineTo(27.5, 19.2);
     c.closePath();
     c.fill();
 
-    const bodyG = c.createLinearGradient(0, -37, 0, 31);
-    bodyG.addColorStop(0, "#ffffff");
-    bodyG.addColorStop(0.12, "#effcff");
-    bodyG.addColorStop(0.34, "#c1f6ff");
-    bodyG.addColorStop(0.7, "#58aff2");
-    bodyG.addColorStop(1, "#154b7e");
-    c.fillStyle = bodyG;
+    const innerWing = c.createLinearGradient(-wingSpan, 0, wingSpan, 0);
+    innerWing.addColorStop(0, "#123e6f");
+    innerWing.addColorStop(0.18, "#2d86bf");
+    innerWing.addColorStop(0.5, "#f4feff");
+    innerWing.addColorStop(0.82, "#3ca5e8");
+    innerWing.addColorStop(1, "#123e6f");
+    c.fillStyle = innerWing;
     c.beginPath();
-    c.moveTo(0, -37);
-    c.lineTo(bodyWidth, -15);
-    c.lineTo(bodyWidth - 1.1, 14);
-    c.lineTo(5.4, 28);
-    c.lineTo(0, 31);
-    c.lineTo(-5.4, 28);
-    c.lineTo(-bodyWidth + 1.1, 14);
-    c.lineTo(-bodyWidth, -15);
+    c.moveTo(-wingSpan + 2.5, 9.5);
+    c.lineTo(-11.4, -14.2);
+    c.lineTo(-2.8, 4.6);
+    c.lineTo(-12.3, 15.6);
+    c.lineTo(-22.8, 16.8);
+    c.closePath();
+    c.fill();
+    c.beginPath();
+    c.moveTo(wingSpan - 2.5, 9.5);
+    c.lineTo(11.4, -14.2);
+    c.lineTo(2.8, 4.6);
+    c.lineTo(12.3, 15.6);
+    c.lineTo(22.8, 16.8);
     c.closePath();
     c.fill();
 
-    c.fillStyle = "rgba(255,255,255,.18)";
+    c.fillStyle = "rgba(6,20,36,.95)";
     c.beginPath();
-    c.moveTo(-3.6, -33); c.lineTo(0, -28); c.lineTo(3.6, -33); c.lineTo(0, -7); c.closePath();
+    c.moveTo(-23.2, 8.7); c.lineTo(-14.6, 0.7); c.lineTo(-9.6, 8.5); c.lineTo(-17.8, 12.7); c.closePath();
+    c.fill();
+    c.beginPath();
+    c.moveTo(23.2, 8.7); c.lineTo(14.6, 0.7); c.lineTo(9.6, 8.5); c.lineTo(17.8, 12.7); c.closePath();
     c.fill();
 
-    c.strokeStyle = "rgba(255,255,255,.74)";
-    c.lineWidth = 1.1;
-    c.beginPath(); c.moveTo(-7.5, -1); c.lineTo(-2.6, 8); c.lineTo(-8.2, 18); c.stroke();
-    c.beginPath(); c.moveTo(7.5, -1); c.lineTo(2.6, 8); c.lineTo(8.2, 18); c.stroke();
-    c.beginPath(); c.moveTo(0, -18); c.lineTo(0, 21); c.strokeStyle = "rgba(160,235,255,.62)"; c.lineWidth = 2.1; c.stroke();
-
-    c.strokeStyle = "rgba(109,220,255,.42)";
+    c.strokeStyle = "rgba(181,242,255,.62)";
     c.lineWidth = 1;
-    c.beginPath(); c.moveTo(-9.8, 10); c.lineTo(-4, 15.5); c.stroke();
-    c.beginPath(); c.moveTo(9.8, 10); c.lineTo(4, 15.5); c.stroke();
+    c.beginPath(); c.moveTo(-24.5, 14.2); c.lineTo(-11.5, -5.6); c.lineTo(-7.2, 6.8); c.stroke();
+    c.beginPath(); c.moveTo(24.5, 14.2); c.lineTo(11.5, -5.6); c.lineTo(7.2, 6.8); c.stroke();
 
-    const canopy = c.createLinearGradient(0, -27, 0, 3);
-    canopy.addColorStop(0, "#fcffff");
-    canopy.addColorStop(0.28, "#91ecff");
-    canopy.addColorStop(1, "#0d2037");
+    const bodyShadow = c.createLinearGradient(0, -44, 0, 34);
+    bodyShadow.addColorStop(0, "#071626");
+    bodyShadow.addColorStop(0.5, "#0e2944");
+    bodyShadow.addColorStop(1, "#060f1a");
+    c.fillStyle = bodyShadow;
+    c.beginPath();
+    c.moveTo(0, -45);
+    c.lineTo(flare, -14);
+    c.lineTo(bodyHalf + 3.5, 14);
+    c.lineTo(7.5, tailY - 2);
+    c.lineTo(0, 35);
+    c.lineTo(-7.5, tailY - 2);
+    c.lineTo(-bodyHalf - 3.5, 14);
+    c.lineTo(-flare, -14);
+    c.closePath();
+    c.fill();
+
+    const bodyCore = c.createLinearGradient(0, -43, 0, 31);
+    bodyCore.addColorStop(0, "#ffffff");
+    bodyCore.addColorStop(0.1, "#effbff");
+    bodyCore.addColorStop(0.34, "#b8f3ff");
+    bodyCore.addColorStop(0.68, "#53a9ee");
+    bodyCore.addColorStop(1, "#123b67");
+    c.fillStyle = bodyCore;
+    c.beginPath();
+    c.moveTo(0, -41.5);
+    c.lineTo(bodyHalf, -17);
+    c.lineTo(bodyHalf - 1.2, 15.5);
+    c.lineTo(5.8, 28.5);
+    c.lineTo(0, 31);
+    c.lineTo(-5.8, 28.5);
+    c.lineTo(-bodyHalf + 1.2, 15.5);
+    c.lineTo(-bodyHalf, -17);
+    c.closePath();
+    c.fill();
+
+    const spine = c.createLinearGradient(0, -38, 0, 23);
+    spine.addColorStop(0, "rgba(255,255,255,.95)");
+    spine.addColorStop(0.5, "rgba(173,246,255,.7)");
+    spine.addColorStop(1, "rgba(80,179,255,.12)");
+    c.fillStyle = spine;
+    c.beginPath();
+    c.moveTo(0, -38.2); c.lineTo(4.9, -29); c.lineTo(2.2, 18.5); c.lineTo(0, 23.6); c.lineTo(-2.2, 18.5); c.lineTo(-4.9, -29); c.closePath();
+    c.fill();
+
+    const noseDark = c.createLinearGradient(0, -bodyLen, 0, -22);
+    noseDark.addColorStop(0, "#06111d");
+    noseDark.addColorStop(1, "#123f69");
+    c.fillStyle = noseDark;
+    c.beginPath();
+    c.moveTo(0, -bodyLen); c.lineTo(7.6, -28.5); c.lineTo(0, -33.6); c.lineTo(-7.6, -28.5); c.closePath();
+    c.fill();
+
+    const noseLight = c.createLinearGradient(0, -bodyLen, 0, -22);
+    noseLight.addColorStop(0, "#ffffff");
+    noseLight.addColorStop(0.28, "#9cefff");
+    noseLight.addColorStop(1, "#2a6ea8");
+    c.fillStyle = noseLight;
+    c.beginPath();
+    c.moveTo(0, -bodyLen); c.lineTo(5.6, -29.8); c.lineTo(0, -35.2); c.lineTo(-5.6, -29.8); c.closePath();
+    c.fill();
+
+    const canopy = c.createLinearGradient(0, -30, 0, 4);
+    canopy.addColorStop(0, "#fdffff");
+    canopy.addColorStop(0.24, "#9fefff");
+    canopy.addColorStop(0.6, "#236eaa");
+    canopy.addColorStop(1, "#071727");
     c.fillStyle = canopy;
     c.beginPath();
-    c.ellipse(0, -12.5, 6.5, 15.5, 0, 0, Math.PI * 2);
+    c.ellipse(0, -13.5, 5.3, 16.3, 0, 0, Math.PI * 2);
     c.fill();
+    c.strokeStyle = "rgba(255,255,255,.75)";
+    c.lineWidth = 1;
+    c.beginPath(); c.moveTo(0, -27.4); c.lineTo(0, 1.8); c.stroke();
+    c.beginPath(); c.moveTo(-3.8, -9.8); c.lineTo(3.8, -9.8); c.stroke();
 
     c.fillStyle = "rgba(255,255,255,.88)";
     c.beginPath();
-    c.ellipse(-1.9, -17.2, 2.1, 5.9, -0.34, 0, Math.PI * 2);
+    c.ellipse(-1.8, -18.6, 1.8, 6, -0.34, 0, Math.PI * 2);
     c.fill();
 
-    c.fillStyle = "#0d2a45";
+    c.strokeStyle = "rgba(255,255,255,.78)";
+    c.lineWidth = 0.95;
+    c.beginPath(); c.moveTo(-7.8, -0.8); c.lineTo(-2.9, 8.2); c.lineTo(-7.6, 19.4); c.stroke();
+    c.beginPath(); c.moveTo(7.8, -0.8); c.lineTo(2.9, 8.2); c.lineTo(7.6, 19.4); c.stroke();
+    c.beginPath(); c.moveTo(-6.1, 7.5); c.lineTo(6.1, 7.5); c.strokeStyle = "rgba(145,234,255,.55)"; c.stroke();
+
+    c.strokeStyle = "rgba(109,220,255,.35)";
+    c.lineWidth = 1;
+    c.beginPath(); c.moveTo(-9.2, 11); c.lineTo(-3.8, 15.8); c.stroke();
+    c.beginPath(); c.moveTo(9.2, 11); c.lineTo(3.8, 15.8); c.stroke();
+
+    c.fillStyle = "#0b243d";
     c.beginPath();
-    c.moveTo(-15.2, 18); c.lineTo(-8.5, 21); c.lineTo(-7.2, 30); c.lineTo(-12.8, 28.5); c.closePath();
+    c.moveTo(-15.6, 17.5); c.lineTo(-8.8, 21.2); c.lineTo(-7.7, 31.8); c.lineTo(-13.4, 29.5); c.closePath();
     c.fill();
     c.beginPath();
-    c.moveTo(15.2, 18); c.lineTo(8.5, 21); c.lineTo(7.2, 30); c.lineTo(12.8, 28.5); c.closePath();
+    c.moveTo(15.6, 17.5); c.lineTo(8.8, 21.2); c.lineTo(7.7, 31.8); c.lineTo(13.4, 29.5); c.closePath();
     c.fill();
 
-    c.fillStyle = "#0c233c";
+    c.fillStyle = "#0d2035";
     c.beginPath();
-    c.moveTo(-4.2, 22); c.lineTo(-1.2, 19); c.lineTo(-5.6, 19.2); c.closePath();
+    c.moveTo(-5.1, 22.3); c.lineTo(-1.4, 18.8); c.lineTo(-6.5, 18.9); c.closePath();
     c.fill();
     c.beginPath();
-    c.moveTo(4.2, 22); c.lineTo(5.6, 19.2); c.lineTo(1.2, 19); c.closePath();
+    c.moveTo(5.1, 22.3); c.lineTo(6.5, 18.9); c.lineTo(1.4, 18.8); c.closePath();
     c.fill();
 
-    const enginePanel = c.createLinearGradient(-11, 22, 11, 22);
-    enginePanel.addColorStop(0, "#daf7ff");
-    enginePanel.addColorStop(0.5, "#9ce9ff");
-    enginePanel.addColorStop(1, "#daf7ff");
-    c.fillStyle = enginePanel;
-    c.beginPath(); c.roundRect(-8.6, 20.8, 5.4, 7.1, 1.6); c.fill();
-    c.beginPath(); c.roundRect(3.2, 20.8, 5.4, 7.1, 1.6); c.fill();
+    const engineCowl = c.createLinearGradient(-13, engineY, 13, engineY);
+    engineCowl.addColorStop(0, "#def8ff");
+    engineCowl.addColorStop(0.5, "#89ecff");
+    engineCowl.addColorStop(1, "#def8ff");
+    c.fillStyle = engineCowl;
+    c.beginPath(); c.roundRect(-10.4, engineY - 1.1, 6.3, 8.2, 1.8); c.fill();
+    c.beginPath(); c.roundRect(4.1, engineY - 1.1, 6.3, 8.2, 1.8); c.fill();
 
-    c.fillStyle = "#7be5ff";
-    c.beginPath(); c.arc(-13.6, 10.8, 2.15, 0, Math.PI * 2); c.fill();
-    c.fillStyle = "#ff6e64";
-    c.beginPath(); c.arc(13.6, 10.8, 2.15, 0, Math.PI * 2); c.fill();
+    c.fillStyle = "#0d2238";
+    c.beginPath(); c.roundRect(-9.2, engineY, 3.9, 5.5, 1.2); c.fill();
+    c.beginPath(); c.roundRect(5.3, engineY, 3.9, 5.5, 1.2); c.fill();
 
-    const accentStroke = rainbow ? c.createLinearGradient(-15, 0, 15, 0) : null;
+    c.save();
+    c.globalCompositeOperation = "lighter";
+    c.fillStyle = "rgba(123,229,255,.95)";
+    c.beginPath(); c.arc(-13.8, 10.4, 2.2, 0, Math.PI * 2); c.fill();
+    c.fillStyle = "rgba(255,110,100,.95)";
+    c.beginPath(); c.arc(13.8, 10.4, 2.2, 0, Math.PI * 2); c.fill();
+    c.restore();
+
+    const accentStroke = rainbow ? c.createLinearGradient(-16, 0, 16, 0) : null;
     if (accentStroke) {
       accentStroke.addColorStop(0, "#ff5757");
       accentStroke.addColorStop(0.25, "#ffd84a");
@@ -736,31 +796,55 @@
       c.strokeStyle = extraColor;
     }
     c.lineWidth = 1.8;
-    c.beginPath(); c.moveTo(-10.8, 1); c.lineTo(-3.6, 9.5); c.stroke();
-    c.beginPath(); c.moveTo(10.8, 1); c.lineTo(3.6, 9.5); c.stroke();
+    c.beginPath(); c.moveTo(-11.6, 0.4); c.lineTo(-3.5, 9.1); c.stroke();
+    c.beginPath(); c.moveTo(11.6, 0.4); c.lineTo(3.5, 9.1); c.stroke();
+    c.beginPath(); c.moveTo(-7.2, 27.2); c.lineTo(7.2, 27.2); c.strokeStyle = "rgba(123,229,255,.35)"; c.lineWidth = 1.2; c.stroke();
+
+    c.save();
+    c.globalCompositeOperation = "lighter";
+    c.strokeStyle = "rgba(135,245,255,.55)";
+    c.lineWidth = 1.1;
+    c.beginPath();
+    c.moveTo(-18.5, 3.8); c.lineTo(-29.6, 9.5); c.lineTo(-19.6, 14.5); c.stroke();
+    c.beginPath();
+    c.moveTo(18.5, 3.8); c.lineTo(29.6, 9.5); c.lineTo(19.6, 14.5); c.stroke();
+    c.restore();
 
     const flick = engineFlicker;
-    const plume = c.createLinearGradient(0, 22, 0, flameY);
-    plume.addColorStop(0, "rgba(255,252,214,.98)");
-    plume.addColorStop(0.28, "rgba(137,255,255,.93)");
-    plume.addColorStop(0.62, "rgba(73,191,255,.8)");
-    plume.addColorStop(1, "rgba(36,115,255,0)");
-    c.fillStyle = plume;
+    const outerPlume = c.createLinearGradient(0, engineY + 1, 0, flameY);
+    outerPlume.addColorStop(0, "rgba(255,255,235,.98)");
+    outerPlume.addColorStop(0.24, "rgba(150,255,255,.92)");
+    outerPlume.addColorStop(0.58, "rgba(74,188,255,.84)");
+    outerPlume.addColorStop(1, "rgba(44,113,255,0)");
+    c.fillStyle = outerPlume;
     c.beginPath();
-    c.moveTo(-5.2, flameY + flick); c.lineTo(0.6, 22.4); c.lineTo(-9.1, 22.4); c.closePath();
+    c.moveTo(-6.4, flameY + flick);
+    c.lineTo(-0.4, engineY + 0.8);
+    c.lineTo(-10.8, engineY + 0.8);
+    c.closePath();
     c.fill();
     c.beginPath();
-    c.moveTo(5.2, flameY + flick); c.lineTo(9.1, 22.4); c.lineTo(-0.6, 22.4); c.closePath();
+    c.moveTo(6.4, flameY + flick);
+    c.lineTo(10.8, engineY + 0.8);
+    c.lineTo(0.4, engineY + 0.8);
+    c.closePath();
     c.fill();
 
-    c.fillStyle = "rgba(255,255,255,.95)";
+    const corePlume = c.createLinearGradient(0, engineY + 1, 0, flameY);
+    corePlume.addColorStop(0, "rgba(255,255,255,.98)");
+    corePlume.addColorStop(0.45, "rgba(170,255,255,.92)");
+    corePlume.addColorStop(1, "rgba(93,210,255,0)");
+    c.fillStyle = corePlume;
     c.beginPath();
-    c.moveTo(0, flameY - 4 + flick * 0.76); c.lineTo(3.2, 23.7); c.lineTo(-3.2, 23.7); c.closePath();
+    c.moveTo(0, flameY - 4 + flick * 0.8);
+    c.lineTo(3.9, engineY + 2.4);
+    c.lineTo(-3.9, engineY + 2.4);
+    c.closePath();
     c.fill();
 
-    c.fillStyle = "#ffb04a";
-    c.beginPath(); c.moveTo(-3.9, flameY - 8 + flick * 0.58); c.lineTo(-1.5, 24.1); c.lineTo(-6.4, 24.1); c.closePath(); c.fill();
-    c.beginPath(); c.moveTo(3.9, flameY - 8 + flick * 0.58); c.lineTo(6.4, 24.1); c.lineTo(1.5, 24.1); c.closePath(); c.fill();
+    c.fillStyle = "rgba(255,176,74,.95)";
+    c.beginPath(); c.moveTo(-4.7, flameY - 8 + flick * 0.58); c.lineTo(-2.1, engineY + 3); c.lineTo(-6.8, engineY + 3); c.closePath(); c.fill();
+    c.beginPath(); c.moveTo(4.7, flameY - 8 + flick * 0.58); c.lineTo(6.8, engineY + 3); c.lineTo(2.1, engineY + 3); c.closePath(); c.fill();
 
     c.restore();
   }
