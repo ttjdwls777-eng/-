@@ -762,46 +762,133 @@
     } else {
       ctx.globalCompositeOperation = "lighter";
 
-      const glow = ctx.createRadialGradient(-1, -2, 1, 0, 0, 22);
-      glow.addColorStop(0, "rgba(255,250,210,.95)");
-      glow.addColorStop(0.34, "rgba(255,216,74,.55)");
+      const glow = ctx.createRadialGradient(-2, -2, 1, 0, 0, 24);
+      glow.addColorStop(0, "rgba(255,252,228,.96)");
+      glow.addColorStop(0.28, "rgba(255,230,130,.65)");
+      glow.addColorStop(0.65, "rgba(255,183,68,.22)");
       glow.addColorStop(1, "rgba(255,156,41,0)");
       ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.arc(0, 0, 20, 0, Math.PI * 2);
+      ctx.arc(0, 0, 22, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.globalCompositeOperation = "source-over";
-      const moonG = ctx.createLinearGradient(-12, -14, 12, 14);
-      moonG.addColorStop(0, "#fff7c4");
-      moonG.addColorStop(0.45, "#ffe27a");
-      moonG.addColorStop(1, "#ffad33");
+      ctx.rotate(-0.32);
+
+      const outerR = 14;
+      const innerR = 13.5;
+      const innerOffsetX = 8.4;
+      const innerOffsetY = 0;
+
+      const moonG = ctx.createLinearGradient(-16, -16, 14, 14);
+      moonG.addColorStop(0, "#fffde7");
+      moonG.addColorStop(0.32, "#fff2a8");
+      moonG.addColorStop(0.72, "#ffd05f");
+      moonG.addColorStop(1, "#ff9f2f");
       ctx.fillStyle = moonG;
-      ctx.shadowBlur = 16;
+      ctx.shadowBlur = 18;
       ctx.shadowColor = "#ffd84a";
+
       ctx.beginPath();
-      ctx.arc(-1, 0, 12, -Math.PI * 0.95, Math.PI * 0.95, false);
-      ctx.arc(5, -1, 10, Math.PI * 0.92, -Math.PI * 0.92, true);
+      ctx.arc(0, 0, outerR, 0, Math.PI * 2, false);
+      ctx.arc(innerOffsetX, innerOffsetY, innerR, 0, Math.PI * 2, true);
       ctx.closePath();
-      ctx.fill();
+      ctx.fill("evenodd");
 
       ctx.shadowBlur = 0;
-      ctx.strokeStyle = "rgba(255,250,223,.82)";
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "rgba(255,252,232,.95)";
+      ctx.lineWidth = 1.6;
       ctx.beginPath();
-      ctx.arc(-2, 0, 11, -Math.PI * 0.78, Math.PI * 0.55, false);
+      ctx.arc(-1.8, -0.4, outerR - 2.4, Math.PI * 0.72, Math.PI * 1.27, true);
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(255,248,214,.7)";
+      ctx.fillStyle = "rgba(255,250,224,.82)";
       ctx.beginPath();
-      ctx.arc(-8, -3, 1.5, 0, Math.PI * 2);
+      ctx.arc(-7.5, -3.8, 1.35, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.arc(-4, 6, 1.2, 0, Math.PI * 2);
+      ctx.arc(-5.2, 4.8, 1.05, 0, Math.PI * 2);
       ctx.fill();
     }
 
     ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  function drawShieldOrbit(now) {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+
+    const pulse = 1 + Math.sin(now * 0.008) * 0.05;
+    const orbitR = (player.r + 20) * pulse;
+
+    const aura = ctx.createRadialGradient(player.x, player.y, player.r + 6, player.x, player.y, orbitR + 26);
+    aura.addColorStop(0, "rgba(130,255,190,.10)");
+    aura.addColorStop(0.5, "rgba(92,255,181,.08)");
+    aura.addColorStop(1, "rgba(92,255,181,0)");
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, orbitR + 24, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(145,255,198,.32)";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, orbitR + Math.sin(now * 0.01) * 2.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    for (let i = 0; i < 3; i++) {
+      const ang = now * 0.0042 + i * (Math.PI * 2 / 3);
+      const sx = player.x + Math.cos(ang) * orbitR;
+      const sy = player.y + Math.sin(ang) * (orbitR * 0.72);
+      const rot = ang + Math.PI / 2;
+
+      const orb = ctx.createRadialGradient(sx, sy, 1, sx, sy, 14);
+      orb.addColorStop(0, "rgba(230,255,242,.9)");
+      orb.addColorStop(0.45, "rgba(110,255,192,.38)");
+      orb.addColorStop(1, "rgba(110,255,192,0)");
+      ctx.fillStyle = orb;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 13, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.save();
+      ctx.translate(sx, sy);
+      ctx.rotate(rot);
+      ctx.scale(0.88, 0.88);
+
+      const shieldGrad = ctx.createLinearGradient(0, -13, 0, 14);
+      shieldGrad.addColorStop(0, "#f3fff8");
+      shieldGrad.addColorStop(0.36, "#98ffd0");
+      shieldGrad.addColorStop(0.72, "#35d897");
+      shieldGrad.addColorStop(1, "#0d7a56");
+      ctx.fillStyle = shieldGrad;
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = "rgba(89,255,184,.55)";
+      ctx.beginPath();
+      ctx.moveTo(0, -13);
+      ctx.bezierCurveTo(8, -11, 10, -4, 9, 2);
+      ctx.bezierCurveTo(8, 8, 4, 13, 0, 15);
+      ctx.bezierCurveTo(-4, 13, -8, 8, -9, 2);
+      ctx.bezierCurveTo(-10, -4, -8, -11, 0, -13);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = "rgba(255,255,255,.92)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(0, -8.5);
+      ctx.lineTo(0, 9.5);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-4.5, -1.2);
+      ctx.quadraticCurveTo(0, 1.8, 4.5, -1.2);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
     ctx.restore();
   }
 
@@ -1378,13 +1465,7 @@
     drawPlayer(now);
 
     if (shieldTimer > 0) {
-      ctx.save();
-      ctx.strokeStyle = "rgba(125,255,155,.85)";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(player.x, player.y, player.r + 10 + Math.sin(now * 0.01) * 2, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
+      drawShieldOrbit(now);
     }
 
     if (magnetTimer > 0) {
