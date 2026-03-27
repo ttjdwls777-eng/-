@@ -763,56 +763,51 @@
       ctx.rotate(-0.34);
 
       ctx.globalCompositeOperation = "lighter";
-      const glow = ctx.createRadialGradient(-5, -3, 1, 0, 0, 26);
+      const glow = ctx.createRadialGradient(-6, -2, 1, 0, 0, 28);
       glow.addColorStop(0, "rgba(255,252,228,.98)");
-      glow.addColorStop(0.18, "rgba(255,241,170,.82)");
-      glow.addColorStop(0.42, "rgba(255,214,96,.46)");
+      glow.addColorStop(0.16, "rgba(255,244,182,.84)");
+      glow.addColorStop(0.4, "rgba(255,216,96,.46)");
       glow.addColorStop(0.72, "rgba(255,171,58,.18)");
       glow.addColorStop(1, "rgba(255,156,41,0)");
       ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.ellipse(-2.5, 0, 21, 23, 0, 0, Math.PI * 2);
+      ctx.ellipse(-4.2, 0, 22, 24, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.globalCompositeOperation = "source-over";
 
-      const outerR = 14.4;
-      const cutR = 13.4;
-      const cutX = 8.9;
-      const cutY = -0.2;
+      const outerR = 14.8;
+      const innerR = 13.8;
+      const innerX = 9.1;
+      const innerY = -0.15;
 
-      const moonG = ctx.createLinearGradient(-16, -16, 15, 16);
-      moonG.addColorStop(0, "#fffef0");
-      moonG.addColorStop(0.26, "#fff5bc");
-      moonG.addColorStop(0.66, "#ffd768");
+      const moonG = ctx.createLinearGradient(-18, -18, 14, 16);
+      moonG.addColorStop(0, "#fffef3");
+      moonG.addColorStop(0.24, "#fff7c8");
+      moonG.addColorStop(0.62, "#ffd768");
       moonG.addColorStop(1, "#ffab34");
 
-      ctx.save();
       ctx.fillStyle = moonG;
       ctx.shadowBlur = 20;
       ctx.shadowColor = "#ffd84a";
       ctx.beginPath();
-      ctx.arc(0, 0, outerR, 0, Math.PI * 2);
+      ctx.arc(0, 0, outerR, Math.PI * 0.86, Math.PI * 1.14, false);
+      ctx.arc(innerX, innerY, innerR, Math.PI * 1.10, Math.PI * 0.90, true);
+      ctx.closePath();
       ctx.fill();
 
-      ctx.globalCompositeOperation = "destination-out";
       ctx.shadowBlur = 0;
+      ctx.strokeStyle = "rgba(255,252,236,.96)";
+      ctx.lineWidth = 1.75;
       ctx.beginPath();
-      ctx.arc(cutX, cutY, cutR, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      ctx.strokeStyle = "rgba(255,253,236,.96)";
-      ctx.lineWidth = 1.7;
-      ctx.beginPath();
-      ctx.arc(-1.9, 0, outerR - 1.9, Math.PI * 0.72, Math.PI * 1.29, true);
+      ctx.arc(-1.9, 0.05, outerR - 1.9, Math.PI * 0.72, Math.PI * 1.28, true);
       ctx.stroke();
 
       ctx.fillStyle = "rgba(255,250,224,.9)";
       ctx.beginPath();
-      ctx.arc(-7.6, -3.6, 1.2, 0, Math.PI * 2);
+      ctx.arc(-7.6, -3.5, 1.18, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.arc(-5.7, 4.6, 0.95, 0, Math.PI * 2);
+      ctx.arc(-5.8, 4.5, 0.92, 0, Math.PI * 2);
       ctx.fill();
     }
 
