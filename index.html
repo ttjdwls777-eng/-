@@ -55,8 +55,22 @@
     }
     .menuPanel h1{margin:0 0 8px;font-size:24px}
     .menuPanel p{margin:0 0 10px;color:var(--muted);font-size:14px;line-height:1.55}
-    .menuTabs{display:flex;gap:8px;margin:12px 0}
-    .menuTabs button{flex:1}
+    .menuTabs{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(0,1fr));
+      gap:8px;
+      margin:12px 0;
+      width:100%;
+    }
+    .menuTabs button{
+      min-width:0;
+      width:100%;
+      padding:10px 6px;
+      font-size:12px;
+      line-height:1.15;
+      white-space:normal;
+      word-break:keep-all;
+    }
     .menuSection{display:none}
     .menuSection.active{display:block}
     .shopItem,.boardFrame{
@@ -124,6 +138,14 @@
       .menuPanel{width:min(360px,95%);padding:14px;max-height:88vh;overflow:hidden}
       .menuPanel h1{font-size:22px}
       .menuPanel p{font-size:13px}
+      .menuTabs{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:6px;
+      }
+      .menuTabs button{
+        padding:8px 6px;
+        font-size:11px;
+      }
       #lbBox{max-height:52vh}
     }
 
