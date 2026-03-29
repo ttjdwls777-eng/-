@@ -22,10 +22,12 @@
   const tabName = document.getElementById("tabName");
   const tabShop = document.getElementById("tabShop");
   const tabBoard = document.getElementById("tabBoard");
+  const tabWeeklyBoard = document.getElementById("tabWeeklyBoard");
   const playSection = document.getElementById("playSection");
   const nameSection = document.getElementById("nameSection");
   const shopSection = document.getElementById("shopSection");
   const boardSection = document.getElementById("boardSection");
+  const weeklyBoardSection = document.getElementById("weeklyBoardSection");
 
   const playerNameText = document.getElementById("playerNameText");
   const nameMenuCurrentText = document.getElementById("nameMenuCurrentText");
@@ -40,6 +42,9 @@
 
   const lbList = document.getElementById("lbList");
   const lbMode = document.getElementById("lbMode");
+  const wlbList = document.getElementById("wlbList");
+  const wlbMode = document.getElementById("wlbMode");
+  const weeklyResetText = document.getElementById("weeklyResetText");
 
   const previewLv10 = document.getElementById("previewLv10");
   const previewLv20 = document.getElementById("previewLv20");
@@ -135,6 +140,9 @@
   const onlineConfig = window.XGP_ONLINE_CONFIG || { enabled: false, firebaseConfig: null };
   let useFirebase = false;
   let db = null;
+
+  const WEEKLY_RESET_ANCHOR_UTC = Date.UTC(2026, 2, 28, 3, 0, 0, 0);
+  const WEEKLY_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
   const save = {
     starCurrency: Number(localStorage.getItem("xgp_v5_star") || 0),
@@ -357,6 +365,7 @@
     nameSection.classList.toggle("active", name === "name");
     shopSection.classList.toggle("active", name === "shop");
     boardSection.classList.toggle("active", name === "board");
+    if (weeklyBoardSection) weeklyBoardSection.classList.toggle("active", name === "weeklyBoard");
     if (name === "shop") {
       requestAnimationFrame(() => renderShopPreviews());
     }
@@ -364,7 +373,9 @@
 
   async function initFirebase() {
     if (!onlineConfig.enabled || !onlineConfig.firebaseConfig || !onlineConfig.firebaseConfig.projectId) {
-      lbMode.textContent = "Local mode";
+      if (lbMode) lbMode.textContent = "Local mode";
+      if (wlbMode) wlbMode.textContent = "Local mode";
+      updateWeeklyResetNotice();
       return;
     }
     try {
@@ -375,11 +386,16 @@
       const app = initializeApp(onlineConfig.firebaseConfig);
       db = { api: { getFirestore, doc, getDoc, setDoc }, store: getFirestore(app) };
       useFirebase = true;
-      lbMode.textContent = "Online mode";
+      if (lbMode) lbMode.textContent = "Online mode";
+      if (wlbMode) wlbMode.textContent = "Online mode";
+      updateWeeklyResetNotice();
       await loadLeaderboard();
+      await loadWeeklyLeaderboard();
     } catch (e) {
       console.error(e);
-      lbMode.textContent = "Local mode";
+      if (lbMode) lbMode.textContent = "Local mode";
+      if (wlbMode) wlbMode.textContent = "Local mode";
+      updateWeeklyResetNotice();
     }
   }
 
@@ -1311,21 +1327,46 @@
     updateHUD();
   }
 
-  async function loadLeaderboard() {
-    if (useFirebase && db) {
-      const { doc, getDoc } = db.api;
-      const snap = await getDoc(doc(db.store, "xgp", "leaderboard"));
-      const rows = snap.exists() ? (snap.data().rows || []) : [];
-      renderLeaderboard(rows);
-      return;
-    }
-    const rows = JSON.parse(localStorage.getItem("xgp_v5_local_lb") || "[]");
-    renderLeaderboard(rows);
+  function getWeeklySeasonInfo(now = new Date()) {
+    const nowMs = now.getTime();
+    const cycleIndex = Math.floor((nowMs - WEEKLY_RESET_ANCHOR_UTC) / WEEKLY_DURATION_MS);
+    const startMs = WEEKLY_RESET_ANCHOR_UTC + (cycleIndex * WEEKLY_DURATION_MS);
+    const endMs = startMs + WEEKLY_DURATION_MS;
+    return {
+      key: String(startMs),
+      startMs,
+      endMs,
+      startDate: new Date(startMs),
+      endDate: new Date(endMs),
+    };
   }
 
-  function renderLeaderboard(rows) {
-    lbList.innerHTML = "";
-    rows.slice(0, 20).forEach((r, i) => {
+  function formatKoreanResetDate(date) {
+    const y = date.getUTCFullYear();
+    const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const d = String(date.getUTCDate()).padStart(2, "0");
+    const hh = String(date.getUTCHours() + 9).padStart(2, "0");
+    const mm = String(date.getUTCMinutes()).padStart(2, "0");
+    return `${y}-${m}-${d} ${hh}:${mm} KST`;
+  }
+
+  function updateWeeklyResetNotice() {
+    if (!weeklyResetText) return;
+    const season = getWeeklySeasonInfo();
+    weeklyResetText.textContent = `This weekly ranking board resets automatically every Saturday at 12:00 noon. Current cycle ends at ${formatKoreanResetDate(season.endDate)}.`;
+  }
+
+  function normalizeRows(rows) {
+    return Array.isArray(rows) ? rows.filter(r => r && r.name).map(r => ({
+      name: String(r.name),
+      score: Math.floor(Number(r.score) || 0)
+    })).sort((a, b) => b.score - a.score) : [];
+  }
+
+  function renderLeaderboard(rows, targetList = lbList, limit = 20) {
+    if (!targetList) return;
+    targetList.innerHTML = "";
+    normalizeRows(rows).slice(0, limit).forEach((r, i) => {
       const li = document.createElement("li");
       const crown = i === 0 ? "👑" : i === 1 ? "🥈" : i === 2 ? "🥉" : "";
       li.innerHTML = `
@@ -1336,8 +1377,50 @@
         </span>
         <span class="scoreText">${Math.floor(r.score)}</span>
       `;
-      lbList.appendChild(li);
+      targetList.appendChild(li);
     });
+  }
+
+  async function loadLeaderboard() {
+    if (useFirebase && db) {
+      const { doc, getDoc } = db.api;
+      const snap = await getDoc(doc(db.store, "xgp", "leaderboard"));
+      const rows = snap.exists() ? (snap.data().rows || []) : [];
+      renderLeaderboard(rows, lbList, 20);
+      return;
+    }
+    const rows = JSON.parse(localStorage.getItem("xgp_v5_local_lb") || "[]");
+    renderLeaderboard(rows, lbList, 20);
+  }
+
+  function getLocalWeeklyLeaderboardPayload() {
+    const season = getWeeklySeasonInfo();
+    let payload = null;
+    try {
+      payload = JSON.parse(localStorage.getItem("xgp_v5_weekly_lb") || "null");
+    } catch (e) {
+      payload = null;
+    }
+    if (!payload || payload.seasonKey !== season.key || !Array.isArray(payload.rows)) {
+      payload = { seasonKey: season.key, rows: [] };
+      localStorage.setItem("xgp_v5_weekly_lb", JSON.stringify(payload));
+    }
+    return payload;
+  }
+
+  async function loadWeeklyLeaderboard() {
+    updateWeeklyResetNotice();
+    const season = getWeeklySeasonInfo();
+    if (useFirebase && db) {
+      const { doc, getDoc } = db.api;
+      const snap = await getDoc(doc(db.store, "xgp", "leaderboard_weekly"));
+      const data = snap.exists() ? (snap.data() || {}) : {};
+      const rows = data.seasonKey === season.key ? (data.rows || []) : [];
+      renderLeaderboard(rows, wlbList, 20);
+      return;
+    }
+    const payload = getLocalWeeklyLeaderboardPayload();
+    renderLeaderboard(payload.rows || [], wlbList, 20);
   }
 
   async function saveLeaderboard(score = 0) {
@@ -1356,6 +1439,7 @@
       rows.sort((a, b) => b.score - a.score);
       await setDoc(ref, { rows: rows.slice(0, 100) });
       await loadLeaderboard();
+      await saveWeeklyLeaderboard(entry.score);
       return;
     }
 
@@ -1366,6 +1450,46 @@
     rows.sort((a, b) => b.score - a.score);
     localStorage.setItem("xgp_v5_local_lb", JSON.stringify(rows.slice(0, 100)));
     await loadLeaderboard();
+    await saveWeeklyLeaderboard(entry.score);
+  }
+
+  async function saveWeeklyLeaderboard(score = 0) {
+    const entry = { name: playerName, score: Math.floor(score) };
+    const season = getWeeklySeasonInfo();
+
+    if (useFirebase && db) {
+      const { doc, getDoc, setDoc } = db.api;
+      const ref = doc(db.store, "xgp", "leaderboard_weekly");
+      const snap = await getDoc(ref);
+      const data = snap.exists() ? (snap.data() || {}) : {};
+      const rows = data.seasonKey === season.key ? (data.rows || []) : [];
+
+      const idx = rows.findIndex(r => r.name === entry.name);
+      if (idx >= 0) rows[idx].score = Math.max(rows[idx].score, entry.score);
+      else rows.push(entry);
+
+      rows.sort((a, b) => b.score - a.score);
+      await setDoc(ref, {
+        seasonKey: season.key,
+        rows: rows.slice(0, 100),
+        resetAt: season.endMs,
+      });
+      await loadWeeklyLeaderboard();
+      return;
+    }
+
+    const payload = getLocalWeeklyLeaderboardPayload();
+    const rows = Array.isArray(payload.rows) ? payload.rows : [];
+    const idx = rows.findIndex(r => r.name === entry.name);
+    if (idx >= 0) rows[idx].score = Math.max(rows[idx].score, entry.score);
+    else rows.push(entry);
+    rows.sort((a, b) => b.score - a.score);
+    localStorage.setItem("xgp_v5_weekly_lb", JSON.stringify({
+      seasonKey: season.key,
+      rows: rows.slice(0, 100),
+      resetAt: season.endMs,
+    }));
+    await loadWeeklyLeaderboard();
   }
 
   function buyUpgrade() {
@@ -1778,6 +1902,12 @@
     switchTab("board");
     loadLeaderboard();
   });
+  if (tabWeeklyBoard) {
+    tabWeeklyBoard.addEventListener("click", () => {
+      switchTab("weeklyBoard");
+      loadWeeklyLeaderboard();
+    });
+  }
 
   (async () => {
     if (menuBtn) menuBtn.textContent = "PAUSE";
@@ -1786,10 +1916,12 @@
       localStorage.setItem("xgp_v5_name", playerName);
     }
     updateHUD();
+    updateWeeklyResetNotice();
     syncBGMButton();
     updateStartButton();
     requestAnimationFrame(() => renderShopPreviews());
     loadLeaderboard();
+    loadWeeklyLeaderboard();
     initFirebase();
     requestAnimationFrame(loop);
   })();
