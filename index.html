@@ -641,6 +641,7 @@
           <button id="tabName">NICKNAME</button>
           <button id="tabShop">SHOP</button>
           <button id="tabBoard">RANK BOARD</button>
+          <button id="tabWeeklyBoard">WEEKLY RANK</button>
         </div>
 
         <div id="playSection" class="menuSection active">
@@ -750,6 +751,28 @@
               <div class="boardModeBadge" id="lbMode">Checking online mode...</div>
             </div>
             <ol id="lbList"></ol>
+          </div>
+        </div>
+
+        <div id="weeklyBoardSection" class="menuSection" style="min-height:0">
+          <div class="boardHero">
+            <div class="boardHeroTop">
+              <div class="boardEyebrow">WEEKLY RANK BOARD</div>
+              <div class="boardChip">AUTO RESET</div>
+            </div>
+            <h2 class="boardHeroTitle">Weekly ranking board.</h2>
+            <p class="boardHeroSub">AUTO RESET EVERY SATURDAY 12:00 NOON</p>
+          </div>
+
+          <div id="wlbBox" class="boardFrame">
+            <div class="boardHead">
+              <div class="boardTitleWrap">
+                <h3>WEEKLY TOP RANKERS</h3>
+                <p class="boardDesc" id="weeklyResetText">This weekly ranking board resets automatically every Saturday at 12:00 noon.</p>
+              </div>
+              <div class="boardModeBadge" id="wlbMode">Checking online mode...</div>
+            </div>
+            <ol id="wlbList"></ol>
           </div>
         </div>
       </div>
