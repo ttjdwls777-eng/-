@@ -45,6 +45,11 @@
   const wlbList = document.getElementById("wlbList");
   const wlbMode = document.getElementById("wlbMode");
   const weeklyResetText = document.getElementById("weeklyResetText");
+  const tabPrevWeeklyBoard = document.getElementById("tabPrevWeeklyBoard");
+  const prevWeeklyBoardSection = document.getElementById("prevWeeklyBoardSection");
+  const pwlbList = document.getElementById("pwlbList");
+  const pwlbMode = document.getElementById("pwlbMode");
+  const prevWeeklyText = document.getElementById("prevWeeklyText");
 
   const previewLv10 = document.getElementById("previewLv10");
   const previewLv20 = document.getElementById("previewLv20");
@@ -62,6 +67,27 @@
   const W = canvas.width;
   const H = canvas.height;
 
+  if (!document.getElementById("tabPrevWeeklyBoard") && tabWeeklyBoard && weeklyBoardSection && weeklyBoardSection.parentElement) {
+    const prevTab = document.createElement("button");
+    prevTab.id = "tabPrevWeeklyBoard";
+    prevTab.className = tabWeeklyBoard.className;
+    prevTab.textContent = "PREV WEEK";
+    tabWeeklyBoard.insertAdjacentElement("afterend", prevTab);
+
+    const prevSection = document.createElement("section");
+    prevSection.id = "prevWeeklyBoardSection";
+    prevSection.className = weeklyBoardSection.className;
+    prevSection.innerHTML = `
+      <div class="menuCard">
+        <h3>PREVIOUS WEEK RANKING</h3>
+        <p id="prevWeeklyText" class="subText">Previous week ranking snapshot will appear after the next weekly reset.</p>
+        <div id="pwlbMode" class="modeText">Weekly snapshot</div>
+        <ol id="pwlbList" class="leaderboardList"></ol>
+      </div>
+    `;
+    weeklyBoardSection.insertAdjacentElement("afterend", prevSection);
+  }
+
   document.body.style.touchAction = "none";
 
   let running = false;
@@ -73,6 +99,12 @@
   let runSessionActive = false;
   let revivePromptOpen = false;
   let deathPending = false;
+
+  const _tabPrevWeeklyBoard = document.getElementById("tabPrevWeeklyBoard");
+  const _prevWeeklyBoardSection = document.getElementById("prevWeeklyBoardSection");
+  const _pwlbList = document.getElementById("pwlbList");
+  const _pwlbMode = document.getElementById("pwlbMode");
+  const _prevWeeklyText = document.getElementById("prevWeeklyText");
 
 
   function updateStartButton() {
@@ -198,6 +230,7 @@
   function sfxLevel() { tone(520, 0.07, "square", 0.04); setTimeout(() => tone(780, 0.09, "square", 0.04), 75); }
   function sfxDeath() { tone(180, 0.1, "sawtooth", 0.05, 90); setTimeout(() => tone(120, 0.12, "square", 0.04, 60), 80); }
   function sfxRevive() { tone(420, 0.08, "triangle", 0.04); setTimeout(() => tone(620, 0.1, "triangle", 0.04), 60); }
+  function sfxButton() { tone(560, 0.045, "triangle", 0.03, 760); }
 
   let bgmEnabled = true;
   let bgmTimer = null;
@@ -366,6 +399,7 @@
     shopSection.classList.toggle("active", name === "shop");
     boardSection.classList.toggle("active", name === "board");
     if (weeklyBoardSection) weeklyBoardSection.classList.toggle("active", name === "weeklyBoard");
+    if (_prevWeeklyBoardSection) _prevWeeklyBoardSection.classList.toggle("active", name === "prevWeeklyBoard");
     if (name === "shop") {
       requestAnimationFrame(() => renderShopPreviews());
     }
@@ -1401,6 +1435,17 @@
     } catch (e) {
       payload = null;
     }
+
+    if (payload && payload.seasonKey && payload.seasonKey !== season.key) {
+      const prevPayload = {
+        seasonKey: payload.seasonKey,
+        rows: Array.isArray(payload.rows) ? payload.rows : [],
+        resetAt: payload.resetAt || season.startMs,
+      };
+      localStorage.setItem("xgp_v5_prev_weekly_lb", JSON.stringify(prevPayload));
+      payload = null;
+    }
+
     if (!payload || payload.seasonKey !== season.key || !Array.isArray(payload.rows)) {
       payload = { seasonKey: season.key, rows: [] };
       localStorage.setItem("xgp_v5_weekly_lb", JSON.stringify(payload));
@@ -1408,19 +1453,71 @@
     return payload;
   }
 
+  function getPreviousWeeklyLeaderboardPayload() {
+    let payload = null;
+    try {
+      payload = JSON.parse(localStorage.getItem("xgp_v5_prev_weekly_lb") || "null");
+    } catch (e) {
+      payload = null;
+    }
+    if (!payload || !Array.isArray(payload.rows)) return { seasonKey: "", rows: [], resetAt: 0 };
+    return payload;
+  }
+
+  function formatPrevWeeklyNotice(payload) {
+    if (!payload || !payload.seasonKey) return "Previous week ranking snapshot will appear after the next weekly reset.";
+    const start = new Date(Number(payload.seasonKey));
+    const end = new Date(Number(payload.resetAt || 0));
+    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return "Previous week ranking snapshot.";
+    return `Previous weekly ranking snapshot • ${formatKoreanResetDate(start)} ~ ${formatKoreanResetDate(end)}`;
+  }
+
   async function loadWeeklyLeaderboard() {
     updateWeeklyResetNotice();
     const season = getWeeklySeasonInfo();
     if (useFirebase && db) {
-      const { doc, getDoc } = db.api;
-      const snap = await getDoc(doc(db.store, "xgp", "leaderboard_weekly"));
+      const { doc, getDoc, setDoc } = db.api;
+      const ref = doc(db.store, "xgp", "leaderboard_weekly");
+      const snap = await getDoc(ref);
       const data = snap.exists() ? (snap.data() || {}) : {};
-      const rows = data.seasonKey === season.key ? (data.rows || []) : [];
-      renderLeaderboard(rows, wlbList, 20);
+      let rows = [];
+      if (data.seasonKey === season.key) {
+        rows = data.rows || [];
+      } else {
+        const previousRows = Array.isArray(data.rows) ? data.rows : [];
+        if (previousRows.length) {
+          await setDoc(doc(db.store, "xgp", "leaderboard_weekly_previous"), {
+            seasonKey: data.seasonKey || "",
+            rows: previousRows.slice(0, 100),
+            resetAt: data.resetAt || season.startMs,
+          });
+        }
+        await setDoc(ref, {
+          seasonKey: season.key,
+          rows: [],
+          resetAt: season.endMs,
+        });
+        rows = [];
+      }
+      renderLeaderboard(rows, wlbList, 7);
       return;
     }
     const payload = getLocalWeeklyLeaderboardPayload();
-    renderLeaderboard(payload.rows || [], wlbList, 20);
+    renderLeaderboard(payload.rows || [], wlbList, 7);
+  }
+
+  async function loadPreviousWeeklyLeaderboard() {
+    if (useFirebase && db) {
+      const { doc, getDoc } = db.api;
+      const snap = await getDoc(doc(db.store, "xgp", "leaderboard_weekly_previous"));
+      const data = snap.exists() ? (snap.data() || {}) : {};
+      renderLeaderboard(data.rows || [], _pwlbList, 7);
+      if (_prevWeeklyText) _prevWeeklyText.textContent = formatPrevWeeklyNotice(data);
+      return;
+    }
+    const payload = getPreviousWeeklyLeaderboardPayload();
+    renderLeaderboard(payload.rows || [], _pwlbList, 7);
+    if (_prevWeeklyText) _prevWeeklyText.textContent = formatPrevWeeklyNotice(payload);
   }
 
   async function saveLeaderboard(score = 0) {
@@ -1908,6 +2005,22 @@
       loadWeeklyLeaderboard();
     });
   }
+  if (_tabPrevWeeklyBoard) {
+    _tabPrevWeeklyBoard.addEventListener("click", () => {
+      switchTab("prevWeeklyBoard");
+      loadPreviousWeeklyLeaderboard();
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target && e.target.closest ? e.target.closest("button") : null;
+    if (!btn) return;
+    if (btn.disabled) return;
+    try {
+      ensureAudio();
+      sfxButton();
+    } catch (err) {}
+  }, true);
 
   (async () => {
     if (menuBtn) menuBtn.textContent = "PAUSE";
@@ -1922,6 +2035,7 @@
     requestAnimationFrame(() => renderShopPreviews());
     loadLeaderboard();
     loadWeeklyLeaderboard();
+    loadPreviousWeeklyLeaderboard();
     initFirebase();
     requestAnimationFrame(loop);
   })();
