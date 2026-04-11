@@ -1515,7 +1515,7 @@
         li.style.gap = "10px";
         li.style.padding = "8px 12px";
         li.style.borderRadius = "14px";
-        li.style.minHeight = "72px";
+        li.style.minHeight = "64px";
         li.style.background = i === 0
           ? "linear-gradient(135deg, rgba(255,216,74,.16), rgba(255,255,255,.05))"
           : i === 1
