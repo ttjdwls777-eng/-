@@ -1498,9 +1498,9 @@
     if (isPrevWeeklyList) {
       targetList.style.display = "flex";
       targetList.style.flexDirection = "column";
-      targetList.style.gap = "10px";
+      targetList.style.gap = "8px";
       targetList.style.padding = "0";
-      targetList.style.margin = "14px 0 0";
+      targetList.style.margin = "12px 0 0";
       targetList.style.listStyle = "none";
     }
 
@@ -1512,32 +1512,27 @@
         li.style.display = "flex";
         li.style.alignItems = "center";
         li.style.justifyContent = "space-between";
-        li.style.gap = "12px";
-        li.style.padding = "14px 16px";
-        li.style.borderRadius = "18px";
+        li.style.gap = "10px";
+        li.style.padding = "10px 14px";
+        li.style.borderRadius = "16px";
+        li.style.minHeight = "72px";
         li.style.background = i === 0
-          ? "linear-gradient(135deg, rgba(255,216,74,.22), rgba(255,255,255,.08))"
+          ? "linear-gradient(135deg, rgba(255,216,74,.16), rgba(255,255,255,.05))"
           : i === 1
-          ? "linear-gradient(135deg, rgba(214,224,255,.18), rgba(255,255,255,.07))"
+          ? "linear-gradient(135deg, rgba(214,224,255,.12), rgba(255,255,255,.05))"
           : i === 2
-          ? "linear-gradient(135deg, rgba(255,172,94,.20), rgba(255,255,255,.07))"
-          : "linear-gradient(135deg, rgba(255,255,255,.07), rgba(120,140,255,.05))";
-        li.style.border = i <= 2
-          ? "1px solid rgba(255,255,255,.16)"
-          : "1px solid rgba(255,255,255,.10)";
-        li.style.boxShadow = i <= 2
-          ? "0 10px 24px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.08)"
-          : "0 8px 20px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.05)";
+          ? "linear-gradient(135deg, rgba(255,172,94,.14), rgba(255,255,255,.05))"
+          : "linear-gradient(135deg, rgba(255,255,255,.05), rgba(120,140,255,.04))";
+        li.style.border = "1px solid rgba(255,255,255,.10)";
+        li.style.boxShadow = "0 6px 16px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.05)";
         li.innerHTML = `
-          <div style="display:flex;align-items:center;gap:12px;min-width:0;flex:1;">
-            <div style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:12px;font-weight:900;font-size:18px;color:${i === 0 ? '#fff3b0' : i === 1 ? '#eef3ff' : i === 2 ? '#ffd6b0' : '#dfe7ff'};background:${i === 0 ? 'rgba(255,216,74,.18)' : i === 1 ? 'rgba(214,224,255,.14)' : i === 2 ? 'rgba(255,172,94,.16)' : 'rgba(255,255,255,.08)'};border:1px solid ${i === 0 ? 'rgba(255,216,74,.28)' : i === 1 ? 'rgba(214,224,255,.22)' : i === 2 ? 'rgba(255,172,94,.24)' : 'rgba(255,255,255,.10)'};flex:0 0 auto;">${i + 1}</div>
-            <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
-              ${crown ? `<div style="font-size:22px;line-height:1;flex:0 0 auto;filter:drop-shadow(0 3px 8px rgba(0,0,0,.18));">${crown}</div>` : ""}
-              <div style="min-width:0;flex:1;font-size:18px;font-weight:800;color:#f5f8ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.name}</div>
-            </div>
+          <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
+            <div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:999px;font-weight:800;font-size:12px;color:#dfe7ff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);flex:0 0 auto;">${i + 1}</div>
+            ${crown ? `<div style="font-size:17px;line-height:1;flex:0 0 auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,.16));">${crown}</div>` : `<div style="width:17px;flex:0 0 17px;"></div>`}
+            <div style="min-width:0;flex:1;font-size:17px;font-weight:800;color:#f5f8ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.name}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex:0 0 auto;">
-            <div style="padding:8px 12px;border-radius:999px;background:rgba(255,216,74,.12);border:1px solid rgba(255,216,74,.18);font-size:13px;font-weight:800;color:#ffe27a;letter-spacing:.02em;">${Math.floor(r.score)}</div>
+            <div style="min-width:92px;padding:8px 12px;border-radius:999px;text-align:center;background:rgba(255,216,74,.10);border:1px solid rgba(255,216,74,.16);font-size:12px;font-weight:800;color:#ffe27a;letter-spacing:.02em;">${Math.floor(r.score)}</div>
           </div>
         `;
       } else {
