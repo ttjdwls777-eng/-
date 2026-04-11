@@ -1513,8 +1513,8 @@
         li.style.alignItems = "center";
         li.style.justifyContent = "space-between";
         li.style.gap = "10px";
-        li.style.padding = "10px 14px";
-        li.style.borderRadius = "16px";
+        li.style.padding = "8px 12px";
+        li.style.borderRadius = "14px";
         li.style.minHeight = "72px";
         li.style.background = i === 0
           ? "linear-gradient(135deg, rgba(255,216,74,.16), rgba(255,255,255,.05))"
