@@ -74,14 +74,107 @@
     prevTab.textContent = "PREV WEEK";
     tabWeeklyBoard.insertAdjacentElement("afterend", prevTab);
 
+    if (!document.getElementById("prevWeeklyBoardScopedStyle")) {
+      const scopedStyle = document.createElement("style");
+      scopedStyle.id = "prevWeeklyBoardScopedStyle";
+      scopedStyle.textContent = `
+        #prevWeeklyBoardSection .menuCard {
+          position: relative;
+          overflow: hidden;
+        }
+        #prevWeeklyBoardSection .menuCard::before {
+          content: "";
+          position: absolute;
+          inset: 0 0 auto 0;
+          height: 1px;
+          background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.65), rgba(255,255,255,0));
+          pointer-events: none;
+        }
+        #prevWeeklyBoardSection .prevWeeklyHero {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 12px;
+          padding: 12px 14px;
+          border-radius: 16px;
+          background: linear-gradient(135deg, rgba(88,132,255,.18), rgba(180,110,255,.16));
+          border: 1px solid rgba(255,255,255,.12);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+        }
+        #prevWeeklyBoardSection .prevWeeklyHeroText {
+          min-width: 0;
+          flex: 1;
+        }
+        #prevWeeklyBoardSection .prevWeeklyLabel {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 10px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: .08em;
+          color: #eef4ff;
+          background: rgba(255,255,255,.08);
+          border: 1px solid rgba(255,255,255,.10);
+          margin-bottom: 8px;
+        }
+        #prevWeeklyBoardSection .prevWeeklyTitle {
+          margin: 0;
+          font-size: 22px;
+          font-weight: 900;
+          letter-spacing: .02em;
+        }
+        #prevWeeklyBoardSection #prevWeeklyText {
+          margin: 8px 0 0;
+          opacity: .92;
+          line-height: 1.45;
+        }
+        #prevWeeklyBoardSection #pwlbMode {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 96px;
+          padding: 10px 14px;
+          border-radius: 999px;
+          font-weight: 800;
+          white-space: nowrap;
+          background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.08));
+          border: 1px solid rgba(255,255,255,.14);
+          box-shadow: 0 8px 20px rgba(0,0,0,.18);
+        }
+        #prevWeeklyBoardSection #pwlbList {
+          margin-top: 14px;
+        }
+        #prevWeeklyBoardSection #pwlbList:empty::before {
+          content: "No previous week record yet.";
+          display: block;
+          padding: 18px 14px;
+          border-radius: 14px;
+          text-align: center;
+          font-weight: 700;
+          color: rgba(255,255,255,.82);
+          background: rgba(255,255,255,.05);
+          border: 1px dashed rgba(255,255,255,.12);
+        }
+      `;
+      document.head.appendChild(scopedStyle);
+    }
+
     const prevSection = document.createElement("section");
     prevSection.id = "prevWeeklyBoardSection";
     prevSection.className = weeklyBoardSection.className;
     prevSection.innerHTML = `
       <div class="menuCard">
-        <h3>PREVIOUS WEEK RANKING</h3>
-        <p id="prevWeeklyText" class="subText">Previous week ranking snapshot will appear after the next weekly reset.</p>
-        <div id="pwlbMode" class="modeText">Weekly snapshot</div>
+        <div class="prevWeeklyHero">
+          <div class="prevWeeklyHeroText">
+            <div class="prevWeeklyLabel">TOP 7 · LAST WEEK</div>
+            <h3 class="prevWeeklyTitle">PREVIOUS WEEK RANKING</h3>
+            <p id="prevWeeklyText" class="subText">Previous week ranking snapshot will appear after the next weekly reset.</p>
+          </div>
+          <div id="pwlbMode" class="modeText">Weekly snapshot</div>
+        </div>
         <ol id="pwlbList" class="leaderboardList"></ol>
       </div>
     `;
