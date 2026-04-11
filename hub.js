@@ -77,88 +77,7 @@
     if (!document.getElementById("prevWeeklyBoardScopedStyle")) {
       const scopedStyle = document.createElement("style");
       scopedStyle.id = "prevWeeklyBoardScopedStyle";
-      scopedStyle.textContent = `
-        #prevWeeklyBoardSection .menuCard {
-          position: relative;
-          overflow: hidden;
-        }
-        #prevWeeklyBoardSection .menuCard::before {
-          content: "";
-          position: absolute;
-          inset: 0 0 auto 0;
-          height: 1px;
-          background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.65), rgba(255,255,255,0));
-          pointer-events: none;
-        }
-        #prevWeeklyBoardSection .prevWeeklyHero {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          margin-bottom: 12px;
-          padding: 12px 14px;
-          border-radius: 16px;
-          background: linear-gradient(135deg, rgba(88,132,255,.18), rgba(180,110,255,.16));
-          border: 1px solid rgba(255,255,255,.12);
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
-        }
-        #prevWeeklyBoardSection .prevWeeklyHeroText {
-          min-width: 0;
-          flex: 1;
-        }
-        #prevWeeklyBoardSection .prevWeeklyLabel {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 10px;
-          border-radius: 999px;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: .08em;
-          color: #eef4ff;
-          background: rgba(255,255,255,.08);
-          border: 1px solid rgba(255,255,255,.10);
-          margin-bottom: 8px;
-        }
-        #prevWeeklyBoardSection .prevWeeklyTitle {
-          margin: 0;
-          font-size: 22px;
-          font-weight: 900;
-          letter-spacing: .02em;
-        }
-        #prevWeeklyBoardSection #prevWeeklyText {
-          margin: 8px 0 0;
-          opacity: .92;
-          line-height: 1.45;
-        }
-        #prevWeeklyBoardSection #pwlbMode {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-width: 96px;
-          padding: 10px 14px;
-          border-radius: 999px;
-          font-weight: 800;
-          white-space: nowrap;
-          background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.08));
-          border: 1px solid rgba(255,255,255,.14);
-          box-shadow: 0 8px 20px rgba(0,0,0,.18);
-        }
-        #prevWeeklyBoardSection #pwlbList {
-          margin-top: 14px;
-        }
-        #prevWeeklyBoardSection #pwlbList:empty::before {
-          content: "No previous week record yet.";
-          display: block;
-          padding: 18px 14px;
-          border-radius: 14px;
-          text-align: center;
-          font-weight: 700;
-          color: rgba(255,255,255,.82);
-          background: rgba(255,255,255,.05);
-          border: 1px dashed rgba(255,255,255,.12);
-        }
-      `;
+      scopedStyle.textContent = ``;
       document.head.appendChild(scopedStyle);
     }
 
@@ -167,14 +86,9 @@
     prevSection.className = weeklyBoardSection.className;
     prevSection.innerHTML = `
       <div class="menuCard">
-        <div class="prevWeeklyHero">
-          <div class="prevWeeklyHeroText">
-            <div class="prevWeeklyLabel">TOP 7 · LAST WEEK</div>
-            <h3 class="prevWeeklyTitle">PREVIOUS WEEK RANKING</h3>
-            <p id="prevWeeklyText" class="subText">Previous week ranking snapshot will appear after the next weekly reset.</p>
-          </div>
-          <div id="pwlbMode" class="modeText">Weekly snapshot</div>
-        </div>
+        <h3>PREVIOUS WEEK TOP 7</h3>
+        <p id="prevWeeklyText" class="subText">Previous week ranking snapshot will appear after the next weekly reset.</p>
+        <div id="pwlbMode" class="modeText">Weekly snapshot</div>
         <ol id="pwlbList" class="leaderboardList"></ol>
       </div>
     `;
@@ -1493,59 +1407,17 @@
   function renderLeaderboard(rows, targetList = lbList, limit = 20) {
     if (!targetList) return;
     targetList.innerHTML = "";
-
-    const isPrevWeeklyList = targetList === _pwlbList;
-    if (isPrevWeeklyList) {
-      targetList.style.display = "flex";
-      targetList.style.flexDirection = "column";
-      targetList.style.gap = "8px";
-      targetList.style.padding = "0";
-      targetList.style.margin = "12px 0 0";
-      targetList.style.listStyle = "none";
-    }
-
     normalizeRows(rows).slice(0, limit).forEach((r, i) => {
       const li = document.createElement("li");
       const crown = i === 0 ? "👑" : i === 1 ? "🥈" : i === 2 ? "🥉" : "";
-
-      if (isPrevWeeklyList) {
-        li.style.display = "flex";
-        li.style.alignItems = "center";
-        li.style.justifyContent = "space-between";
-        li.style.gap = "10px";
-        li.style.padding = "8px 12px";
-        li.style.borderRadius = "14px";
-        li.style.minHeight = "64px";
-        li.style.background = i === 0
-          ? "linear-gradient(135deg, rgba(255,216,74,.16), rgba(255,255,255,.05))"
-          : i === 1
-          ? "linear-gradient(135deg, rgba(214,224,255,.12), rgba(255,255,255,.05))"
-          : i === 2
-          ? "linear-gradient(135deg, rgba(255,172,94,.14), rgba(255,255,255,.05))"
-          : "linear-gradient(135deg, rgba(255,255,255,.05), rgba(120,140,255,.04))";
-        li.style.border = "1px solid rgba(255,255,255,.10)";
-        li.style.boxShadow = "0 6px 16px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.05)";
-        li.innerHTML = `
-          <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
-            <div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:999px;font-weight:800;font-size:12px;color:#dfe7ff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);flex:0 0 auto;">${i + 1}</div>
-            ${crown ? `<div style="font-size:17px;line-height:1;flex:0 0 auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,.16));">${crown}</div>` : `<div style="width:17px;flex:0 0 17px;"></div>`}
-            <div style="min-width:0;flex:1;font-size:17px;font-weight:800;color:#f5f8ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.name}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;flex:0 0 auto;">
-            <div style="min-width:92px;padding:8px 12px;border-radius:999px;text-align:center;background:rgba(255,216,74,.10);border:1px solid rgba(255,216,74,.16);font-size:12px;font-weight:800;color:#ffe27a;letter-spacing:.02em;">${Math.floor(r.score)}</div>
-          </div>
-        `;
-      } else {
-        li.innerHTML = `
-          <span class="rankBadge">
-            <span class="rankNum">${i + 1}</span>
-            <span class="crown">${crown}</span>
-            <span class="nameText">${r.name}</span>
-          </span>
-          <span class="scoreText">${Math.floor(r.score)}</span>
-        `;
-      }
-
+      li.innerHTML = `
+        <span class="rankBadge">
+          <span class="rankNum">${i + 1}</span>
+          <span class="crown">${crown}</span>
+          <span class="nameText">${r.name}</span>
+        </span>
+        <span class="scoreText">${Math.floor(r.score)}</span>
+      `;
       targetList.appendChild(li);
     });
   }
